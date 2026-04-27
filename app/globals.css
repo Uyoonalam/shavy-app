@@ -1,0 +1,386 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  :root {
+    --shavy-void: 2, 28, 22;
+    --shavy-gold: 212, 175, 55;
+    --shavy-paper: 245, 240, 230;
+  }
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease;
+}
+
+/* These are handled by page.tsx now - do not set background here */
+body.light-theme, body.dark-theme {
+  background: transparent !important;
+}
+
+/* Input styles - light theme default */
+input {
+  background: white;
+  margin-top: 10px;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+}
+
+input:focus {
+  outline: none;
+  border-color: rgb(212, 175, 55);
+}
+
+/* Dark theme input overrides */
+body.dark-theme input {
+  background: #2a2a2a !important;
+  color: #e2e8f0 !important;
+  border-color: #3a3a3a !important;
+}
+
+body.dark-theme input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  background: transparent;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html, body {
+  overflow: hidden;
+}
+
+/* Splash screen animation */
+@keyframes lineMoveLeftToRight {
+  0% {
+    left: -10%;
+    right: auto;
+  }
+  100% {
+    left: 110%;
+    right: auto;
+  }
+}
+
+/* Utility classes */
+.text-shavy-gold {
+  color: rgb(212, 175, 55);
+}
+
+.bg-shavy-void {
+  background-color: rgb(2, 28, 22);
+}
+
+.bg-shavy-paper {
+  background-color: rgb(245, 240, 230);
+}
+
+.text-shavy-void {
+  color: rgb(2, 28, 22);
+}
+
+.font-script {
+  font-family: var(--font-allura), cursive;
+}
+
+/* Splash screen - force dark green before transition */
+.splash-dark {
+  background-color: rgb(2, 28, 22) !important;
+}
+
+/* Make inputs more prominent */
+body.light-theme input {
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  font-size: 15px !important;
+  transition: all 0.2s ease;
+}
+
+body.light-theme input:focus {
+  border-color: rgb(212, 175, 55) !important;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1) !important;
+}
+
+/* Dark mode inputs - subtle but visible */
+body.dark-theme input {
+  background: #2a2a2a !important;
+  border: 1.5px solid #3a3a3a !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme input:focus {
+  border-color: rgb(212, 175, 55) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+  outline: none;
+}
+
+/* Smooth scrolling */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Card entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.audit-card {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+/* LIGHT MODE - 3D Card Styles */
+body.light-theme {
+  background: #f0f2f5 !important;
+}
+
+body.light-theme .card-3d {
+  background: #fefefe !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1),
+              0 1px 2px 0 rgba(0, 0, 0, 0.02),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+body.light-theme .card-3d:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 45px -12px rgba(0, 0, 0, 0.15),
+              0 1px 2px 0 rgba(0, 0, 0, 0.02),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Inputs in light mode */
+body.light-theme input {
+  background: #fefefe !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  font-size: 15px !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+body.light-theme input:focus {
+  border-color: rgb(212, 175, 55) !important;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+  outline: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-20px) translateX(10px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes softPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 4px 16px rgba(212, 175, 55, 0.5); }
+}
+
+@keyframes fadeInPage {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* SWEEPING BORDER GLOW - Continuous left-to-right loop */
+@keyframes sweepingBorderGlow {
+  0% {
+    background-position: -200% center;
+  }
+  50% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+/* Gold gradient border on focus */
+input:focus {
+  border-image: linear-gradient(135deg, #d4af37, #b8860b) 1;
+  border-image-slice: 1;
+}
+
+/* Toast notification animation */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #d4af37;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  zIndex: 200;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-left: 3px solid #d4af37;
+}
+
+body.light-theme .toast {
+  background: linear-gradient(135deg, #ffffff, #f3f4f6);
+  color: #b8860b;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== GLOBAL TRANSITION DELAYS ===== */
+button, 
+a, 
+.nav-item,
+[role="button"],
+.clickable,
+.card-clickable {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.view-transition {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.no-flicker {
+  transition: none;
+}
+
+.fade-in {
+  animation: viewFadeIn 0.2s ease-out;
+}
+
+@keyframes viewFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+.tab-content {
+  transition: opacity 0.2s ease;
+}
+
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== DARK MODE NEW COLOR SCHEME (#15161C base) ===== */
+body.dark-theme {
+  background: #15161c !important;
+}
+
+/* Dark mode card backgrounds */
+body.dark-theme .card-bg {
+  background-color: #1e1f26 !important;
+}
+
+/* Dark mode card hover */
+body.dark-theme .card-hover:hover {
+  background-color: #2a2b33 !important;
+}
+
+/* Dark mode borders */
+body.dark-theme .border-color {
+  border-color: #2a2b33 !important;
+}
+
+/* Dark mode text */
+body.dark-theme .text-primary {
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .text-secondary {
+  color: #94a3b8 !important;
+}
+
+/* Hover effect for all cards (non-toggleable) */
+.card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3), 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Light mode hover */
+body.light-theme .card-hover:hover {
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2), 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Simple hover effect for cards without existing hover */
+.simple-card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.simple-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: #d4af37 !important;
+}
+
+body.dark-theme .simple-card-hover:hover {
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+}
+
+body.light-theme .simple-card-hover:hover {
+  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+}

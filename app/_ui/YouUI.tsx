@@ -1,0 +1,611 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+interface YouUIProps {
+  theme: "dark" | "light";
+  setTheme: (theme: "dark" | "light") => void;
+  onPurchase: (type: "founders" | "cvbuilder" | "ads", amount: number) => void;
+}
+
+export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [jobAlerts, setJobAlerts] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [foundersEnabled, setFoundersEnabled] = useState(false);
+  const [cvBuilderEnabled, setCvBuilderEnabled] = useState(false);
+  const [adsRemoved, setAdsRemoved] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const darkColors = {
+    cardBg: "#2A2622",
+    border: "#3a3a3a",
+    text: "#e2e8f0",
+    textMuted: "#94a3b8",
+    secondaryBg: "#1e1f26",
+  };
+
+  const lightColors = {
+    cardBg: "#ffffff",
+    border: "#e2e8f0",
+    text: "#0f172a",
+    textMuted: "#64748b",
+    secondaryBg: "#f8fafc",
+  };
+
+  const c = theme === "dark" ? darkColors : lightColors;
+
+  useEffect(() => {
+    const savedPhoto = localStorage.getItem("shavy_profile_photo");
+    if (savedPhoto) {
+      setProfilePhoto(savedPhoto);
+    }
+    const founders = localStorage.getItem("shavy_founders_enabled");
+    if (founders === "true") {
+      setFoundersEnabled(true);
+    }
+    const cvBuilder = localStorage.getItem("shavy_cvbuilder_enabled");
+    if (cvBuilder === "true") {
+      setCvBuilderEnabled(true);
+    }
+    const ads = localStorage.getItem("shavy_ads_removed");
+    if (ads === "true") {
+      setAdsRemoved(true);
+      // Dispatch event to hide ads in HomeUI
+      window.dispatchEvent(new CustomEvent("adsRemoved"));
+    }
+  }, []);
+
+  const handleSectionToggle = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
+  const handleThemeToggle = () => {
+    setIsToggling(true);
+    setTimeout(() => {
+      setTheme(theme === "dark" ? "light" : "dark");
+      setTimeout(() => setIsToggling(false), 300);
+    }, 150);
+  };
+
+  const handleDeleteAllData = () => {
+    localStorage.removeItem("shavy_resumeScanned");
+    localStorage.removeItem("shavy_skills");
+    localStorage.removeItem("shavy_description");
+    localStorage.removeItem("shavy_profile_photo");
+    localStorage.removeItem("shavy_enrolled_courses");
+    localStorage.removeItem("shavy_founders_enabled");
+    localStorage.removeItem("shavy_cvbuilder_enabled");
+    localStorage.removeItem("shavy_ads_removed");
+    setProfilePhoto(null);
+    setFoundersEnabled(false);
+    setCvBuilderEnabled(false);
+    setAdsRemoved(false);
+    window.dispatchEvent(new CustomEvent("showToast", { detail: "All data deleted" }));
+    setShowDeleteConfirm(false);
+    setTimeout(() => window.location.reload(), 500);
+  };
+
+  const handleExportData = () => {
+    const data = {
+      scanned: localStorage.getItem("shavy_resumeScanned") === "true",
+      skills: JSON.parse(localStorage.getItem("shavy_skills") || "[]"),
+      description: localStorage.getItem("shavy_description") || "",
+      foundersEnabled: foundersEnabled,
+      cvBuilderEnabled: cvBuilderEnabled,
+      adsRemoved: adsRemoved,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `shavy-profile-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    window.dispatchEvent(new CustomEvent("showToast", { detail: "Profile exported!" }));
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfilePhoto(base64String);
+        localStorage.setItem("shavy_profile_photo", base64String);
+        window.dispatchEvent(new CustomEvent("showToast", { detail: "Photo updated!" }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFoundersPurchase = () => {
+    onPurchase("founders", 9.99);
+  };
+
+  const handleCvBuilderPurchase = () => {
+    onPurchase("cvbuilder", 19);
+  };
+
+  const handleAdsPurchase = () => {
+    onPurchase("ads", 4.99);
+  };
+
+  const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <div
+      onClick={onChange}
+      style={{
+        width: "40px",
+        height: "20px",
+        borderRadius: "20px",
+        backgroundColor: checked ? "#d4af37" : "#6b7280",
+        cursor: "pointer",
+        transition: "background-color 0.2s ease",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          width: "16px",
+          height: "16px",
+          borderRadius: "50%",
+          backgroundColor: "#ffffff",
+          position: "absolute",
+          top: "2px",
+          left: checked ? "22px" : "2px",
+          transition: "left 0.2s ease",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+        }}
+      />
+    </div>
+  );
+
+  const faqItems = [
+    { q: "How does Shavy protect my data?", a: "All your data stays on your device. Shavy never sees, sells, or shares your personal information." },
+    { q: "Is Shavy really free?", a: "Yes! Basic features are completely free. We only charge companies for job postings." },
+    { q: "How do I delete my data?", a: "Go to Security section in Settings and click 'Delete All Data'." },
+    { q: "What file types can I upload?", a: "We support PDF, DOCX, and TXT files for resume uploads." },
+    { q: "How does company auditing work?", a: "We analyze public records, financial data, and ex-employee reviews to generate trust scores." },
+  ];
+
+  const menuItemStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "12px 0",
+    cursor: "pointer",
+    borderBottom: `1px solid ${c.border}`,
+    transition: "all 0.2s ease",
+  };
+
+  const iconStyle = { fontSize: "16px", width: "28px", opacity: 0.7 };
+  const labelStyle = { fontSize: "14px", fontWeight: "500", color: c.text, flex: 1 };
+  const valueStyle = { fontSize: "12px", color: c.textMuted };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      
+      {/* Profile Card with Uploadable Photo */}
+      <div style={{
+        backgroundColor: c.cardBg,
+        borderRadius: "20px",
+        padding: "24px",
+        border: `1px solid ${c.border}`,
+        textAlign: "center",
+      }}>
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            background: profilePhoto ? "transparent" : "linear-gradient(135deg, #d4af37, #b8860b)",
+            margin: "0 auto 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "36px",
+            boxShadow: "0 4px 12px rgba(212, 175, 55, 0.3)",
+            cursor: "pointer",
+            overflow: "hidden",
+            transition: "transform 0.2s ease",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+        >
+          {profilePhoto ? (
+            <img
+              src={profilePhoto}
+              alt="Profile"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+          ) : (
+            "👤"
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          style={{ display: "none" }}
+        />
+        
+        <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+          Guest User
+        </h3>
+        <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px" }}>
+          member since 2026
+        </p>
+        
+        <button
+          onClick={handleThemeToggle}
+          disabled={isToggling}
+          style={{
+            background: "rgba(212, 175, 55, 0.1)",
+            border: "1px solid #d4af37",
+            padding: "8px 20px",
+            borderRadius: "40px",
+            fontSize: "13px",
+            fontWeight: "500",
+            color: "#d4af37",
+            cursor: isToggling ? "wait" : "pointer",
+            marginTop: 0,
+            transition: "all 0.2s ease",
+            transform: isHovered ? "scale(1.02)" : "scale(1)",
+            opacity: isToggling ? 0.7 : 1,
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {isToggling ? "⟳" : `${theme === "dark" ? "☀️" : "🌙"} ${theme === "dark" ? "Light" : "Dark"}`}
+        </button>
+      </div>
+
+      {/* Founders Ecosystem Purchase Card - only show if NOT enabled */}
+      {!foundersEnabled && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🚀</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            Founders Ecosystem
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Connect with founders, mentors, and exclusive opportunities
+          </p>
+          <button
+            onClick={handleFoundersPurchase}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              marginTop: 0,
+            }}
+          >
+            Upgrade — $9.99/mo
+          </button>
+        </div>
+      )}
+
+      {/* CV Builder Purchase Card - only show if NOT enabled */}
+      {!cvBuilderEnabled && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>📄</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            CV Builder
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Build professional CVs with AI-powered templates • Export as PDF
+          </p>
+          <button
+            onClick={handleCvBuilderPurchase}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              marginTop: 0,
+            }}
+          >
+            Upgrade — $19 one-time
+          </button>
+        </div>
+      )}
+
+      {/* Remove Ads Purchase Card - only show if NOT enabled */}
+      {!adsRemoved && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🛡️</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            Remove Ads
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Enjoy an ad-free experience across the app
+          </p>
+          <button
+            onClick={handleAdsPurchase}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              marginTop: 0,
+            }}
+          >
+            Remove Ads — $4.99/mo
+          </button>
+        </div>
+      )}
+
+      {/* Security Section */}
+      <div style={{
+        backgroundColor: c.cardBg,
+        borderRadius: "16px",
+        border: `1px solid ${c.border}`,
+        overflow: "hidden",
+      }}>
+        <div onClick={() => handleSectionToggle("security")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px", opacity: 0.7 }}>🔒</span>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>Security</span>
+          </div>
+          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+            {openSection === "security" ? "−" : "+"}
+          </span>
+        </div>
+        {openSection === "security" && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+            <div onClick={handleExportData} style={menuItemStyle}>
+              <span style={iconStyle}>📤</span>
+              <span style={labelStyle}>Export Data</span>
+              <span style={valueStyle}>JSON</span>
+            </div>
+            {!showDeleteConfirm ? (
+              <div onClick={() => setShowDeleteConfirm(true)} style={{ ...menuItemStyle, borderBottom: "none" }}>
+                <span style={iconStyle}>🗑️</span>
+                <span style={{ ...labelStyle, color: "#ef4444" }}>Delete All</span>
+              </div>
+            ) : (
+              <div style={{ marginTop: "12px", padding: "12px", backgroundColor: c.secondaryBg, borderRadius: "12px" }}>
+                <p style={{ fontSize: "12px", color: "#ef4444", marginBottom: "12px" }}>⚠️ Permanent deletion — this action cannot be undone</p>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button onClick={handleDeleteAllData} style={{ background: "#ef4444", border: "none", padding: "8px 16px", borderRadius: "30px", fontSize: "12px", fontWeight: "500", color: "#fff", cursor: "pointer" }}>Yes</button>
+                  <button onClick={() => setShowDeleteConfirm(false)} style={{ background: "transparent", border: `1px solid ${c.border}`, padding: "8px 16px", borderRadius: "30px", fontSize: "12px", fontWeight: "500", color: c.textMuted, cursor: "pointer" }}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Notifications Section */}
+      <div style={{
+        backgroundColor: c.cardBg,
+        borderRadius: "16px",
+        border: `1px solid ${c.border}`,
+        overflow: "hidden",
+      }}>
+        <div onClick={() => handleSectionToggle("notifications")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px", opacity: 0.7 }}>🔔</span>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>Notifications</span>
+          </div>
+          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+            {openSection === "notifications" ? "−" : "+"}
+          </span>
+        </div>
+        {openSection === "notifications" && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={iconStyle}>📧</span>
+                <span style={labelStyle}>Email</span>
+              </div>
+              <ToggleSwitch checked={emailNotifications} onChange={() => setEmailNotifications(!emailNotifications)} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={iconStyle}>💼</span>
+                <span style={labelStyle}>Job Alerts</span>
+              </div>
+              <ToggleSwitch checked={jobAlerts} onChange={() => setJobAlerts(!jobAlerts)} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Support Section */}
+      <div style={{
+        backgroundColor: c.cardBg,
+        borderRadius: "16px",
+        border: `1px solid ${c.border}`,
+        overflow: "hidden",
+      }}>
+        <div onClick={() => handleSectionToggle("support")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px", opacity: 0.7 }}>🛟</span>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>Support</span>
+          </div>
+          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+            {openSection === "support" ? "−" : "+"}
+          </span>
+        </div>
+        {openSection === "support" && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+            <a href="mailto:support@shavy.com" style={{ textDecoration: "none" }}>
+              <div style={menuItemStyle}>
+                <span style={iconStyle}>📧</span>
+                <span style={labelStyle}>Email</span>
+                <span style={valueStyle}>support@shavy.com</span>
+              </div>
+            </a>
+            <div style={menuItemStyle}>
+              <span style={iconStyle}>💬</span>
+              <span style={labelStyle}>Live Chat</span>
+              <span style={valueStyle}>Soon</span>
+            </div>
+            <div onClick={() => setShowFaqModal(true)} style={{ ...menuItemStyle, borderBottom: "none" }}>
+              <span style={iconStyle}>❓</span>
+              <span style={labelStyle}>FAQ</span>
+              <span style={valueStyle}>→</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* About Section */}
+      <div style={{
+        backgroundColor: c.cardBg,
+        borderRadius: "16px",
+        border: `1px solid ${c.border}`,
+        overflow: "hidden",
+      }}>
+        <div onClick={() => handleSectionToggle("about")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px", opacity: 0.7 }}>ℹ️</span>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>About</span>
+          </div>
+          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+            {openSection === "about" ? "−" : "+"}
+          </span>
+        </div>
+        {openSection === "about" && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+            <div style={menuItemStyle}>
+              <span style={iconStyle}>📦</span>
+              <span style={labelStyle}>Version</span>
+              <span style={valueStyle}>1.0.0</span>
+            </div>
+            <div onClick={() => setShowPrivacyModal(true)} style={menuItemStyle}>
+              <span style={iconStyle}>📜</span>
+              <span style={labelStyle}>Privacy</span>
+              <span style={valueStyle}>→</span>
+            </div>
+            <div style={{ ...menuItemStyle, borderBottom: "none" }}>
+              <span style={iconStyle}>⚖️</span>
+              <span style={labelStyle}>Terms</span>
+              <span style={valueStyle}>→</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Privacy Modal */}
+      {showPrivacyModal && (
+        <>
+          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: c.text }}>Privacy</h3>
+            <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px", lineHeight: "1.5" }}>Privacy isn't optional. Your data lives only on your device, end-to-end encrypted. Shavy never collects, sells, or shares anything. Your information belongs to you — always.</p>
+            <button onClick={() => setShowPrivacyModal(false)} style={{ width: "100%", background: "linear-gradient(135deg, #d4af37, #b8860b)", border: "none", padding: "10px", borderRadius: "40px", fontSize: "13px", fontWeight: "600", color: "#111827", cursor: "pointer" }}>Got it</button>
+          </div>
+        </>
+      )}
+
+      {/* FAQ Modal */}
+      {showFaqModal && (
+        <>
+          <div onClick={() => setShowFaqModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", maxHeight: "70vh", overflowY: "auto", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", color: c.text }}>FAQ</h3>
+              <button onClick={() => setShowFaqModal(false)} style={{ background: "transparent", border: "none", fontSize: "18px", cursor: "pointer", color: c.textMuted }}>✕</button>
+            </div>
+            {faqItems.map((item, idx) => (
+              <div key={idx} style={{ marginBottom: "12px", borderBottom: idx < faqItems.length - 1 ? `1px solid ${c.border}` : "none" }}>
+                <div onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", cursor: "pointer" }}>
+                  <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, flex: 1 }}>{item.q}</span>
+                </div>
+                {openFaqIndex === idx && (
+                  <p style={{ fontSize: "12px", color: c.textMuted, paddingBottom: "10px", lineHeight: "1.4" }}>{item.a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
