@@ -77,7 +77,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   if (!storedPin) {
     // If no PIN exists, ask them to set one first (or just show error)
     setDeletePinError("No PIN set. Please set a PIN in Vault first.");
-    setTimeout(() => setDeletePinError(""), 3000);
+    setTimeout(() => setDeletePinError(""), 3001);
     return;
   }
   setShowDeletePinModal(true);
