@@ -417,13 +417,14 @@ export default function AuditUI({ theme }: AuditUIProps) {
     const details = getCompanyDetails(company.name);
     if (details) {
       setViewingCompany({ ...company, details });
-      setTimeout(() => {
-        if (scrollContainer) {
-          scrollContainer.scrollTop = 0;
-        } else {
-          window.scrollTo(0, 0);
-        }
-      }, 10);
+setTimeout(() => {
+  const scrollContainer = document.querySelector('[style*="overflow-y: auto"]');
+  if (scrollContainer) {
+    scrollContainer.scrollTop = 0;
+  } else {
+    window.scrollTo(0, 0);
+  }
+}, 10);
     }
   };
 
