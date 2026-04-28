@@ -26,7 +26,10 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   const [confirmPin, setConfirmPin] = useState("");
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
-  
+  const [showDeletePinModal, setShowDeletePinModal] = useState(false);
+  const [deletePin, setDeletePin] = useState("");
+  const [deletePinError, setDeletePinError] = useState("");
+
   const darkColors = {
     cardBg: "#2A2622",
     border: "#3a3a3a",
@@ -67,6 +70,29 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
 
   const handleSectionToggle = (section: string) => {
     setOpenSection(openSection === section ? null : section);
+  };
+
+  const handleDeleteRequest = () => {
+  const storedPin = localStorage.getItem("shavy_vault_pin");
+  if (!storedPin) {
+    // If no PIN exists, ask them to set one first (or just show error)
+    setDeletePinError("No PIN set. Please set a PIN in Vault first.");
+    setTimeout(() => setDeletePinError(""), 3000);
+    return;
+  }
+  setShowDeletePinModal(true);
+};
+
+  const verifyDeletePin = () => {
+    const storedPin = localStorage.getItem("shavy_vault_pin");
+    if (deletePin === storedPin) {
+      setShowDeletePinModal(false);
+      handleDeleteAllData();
+    } else {
+      setDeletePinError("Incorrect PIN");
+      setDeletePin("");
+      setTimeout(() => setDeletePinError(""), 2000);
+    }
   };
 
   const handleDeleteAllData = () => {
@@ -149,20 +175,6 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
       setPinSuccess("");
       setPinError("");
     }, 1500);
-  };
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setProfilePhoto(base64String);
-        localStorage.setItem("shavy_profile_photo", base64String);
-        window.dispatchEvent(new CustomEvent("showToast", { detail: "Photo updated!" }));
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleFoundersPurchase = () => {
@@ -268,7 +280,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
               <div style={{ marginTop: "12px", padding: "12px", backgroundColor: c.secondaryBg, borderRadius: "12px" }}>
                 <p style={{ fontSize: "12px", color: "#ef4444", marginBottom: "12px" }}>⚠️ Permanent deletion — this action cannot be undone</p>
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <button onClick={handleDeleteAllData} style={{ background: "#ef4444", border: "none", padding: "8px 16px", borderRadius: "30px", fontSize: "12px", fontWeight: "500", color: "#fff", cursor: "pointer" }}>Yes</button>
+                  <button onClick={handleDeleteRequest} style={{ background: "#ef4444", border: "none", padding: "8px 16px", borderRadius: "30px", fontSize: "12px", fontWeight: "500", color: "#fff", cursor: "pointer" }}>Yes</button>
                   <button onClick={() => setShowDeleteConfirm(false)} style={{ background: "transparent", border: `1px solid ${c.border}`, padding: "8px 16px", borderRadius: "30px", fontSize: "12px", fontWeight: "500", color: c.textMuted, cursor: "pointer" }}>Cancel</button>
                 </div>
               </div>
@@ -543,7 +555,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
             setConfirmPin("");
             setPinError("");
             setPinSuccess("");
-          }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(none)", zIndex: 100 }} />
+          }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
           <div style={{ 
             position: "fixed", 
             top: "50%", 
@@ -740,7 +752,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
       {/* Privacy Modal */}
       {showPrivacyModal && (
         <>
-          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(none)", zIndex: 100 }} />
+          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
             <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: c.text }}>Privacy</h3>
             <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px", lineHeight: "1.5" }}>Privacy isn't optional. Your data lives only on your device, end-to-end encrypted. Shavy never collects, sells, or shares anything. Your information belongs to you — always.</p>
@@ -768,6 +780,109 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
                 )}
               </div>
             ))}
+          </div>
+        </>
+      )}
+
+      {/* Delete PIN Verification Modal */}
+      {showDeletePinModal && (
+        <>
+          <div onClick={() => {
+            setShowDeletePinModal(false);
+            setDeletePin("");
+            setDeletePinError("");
+          }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
+          <div style={{ 
+            position: "fixed", 
+            top: "50%", 
+            left: "50%", 
+            transform: "translate(-50%, -50%)", 
+            width: "300px", 
+            backgroundColor: c.cardBg, 
+            borderRadius: "24px", 
+            padding: "24px", 
+            zIndex: 101, 
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: "48px", marginBottom: "12px" }}>⚠️</div>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text, marginBottom: "8px" }}>
+              Verify PIN to Delete
+            </h3>
+            <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px" }}>
+              This action is permanent and cannot be undone.
+            </p>
+            
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="\d*"
+              maxLength={4}
+              placeholder="Enter 4-digit PIN"
+              value={deletePin}
+              onChange={(e) => setDeletePin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              autoFocus
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "12px",
+                border: `1px solid ${deletePinError ? "#ef4444" : c.border}`,
+                backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                color: c.text,
+                fontSize: "20px",
+                textAlign: "center",
+                letterSpacing: "8px",
+                fontFamily: "monospace",
+                marginBottom: "16px",
+                boxSizing: "border-box",
+              }}
+            />
+            
+            {deletePinError && (
+              <p style={{ fontSize: "12px", color: "#ef4444", marginBottom: "16px" }}>
+                {deletePinError}
+              </p>
+            )}
+            
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={verifyDeletePin}
+                disabled={deletePin.length !== 4}
+                style={{
+                  flex: 1,
+                  background: deletePin.length === 4 ? "linear-gradient(135deg, #d4af37, #b8860b)" : (theme === "dark" ? "#3a3a3a" : "#e2e8f0"),
+                  border: "none",
+                  padding: "12px",
+                  borderRadius: "40px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: deletePin.length === 4 ? "#111827" : c.textMuted,
+                  cursor: deletePin.length === 4 ? "pointer" : "not-allowed",
+                }}
+              >
+                Confirm Delete
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeletePinModal(false);
+                  setDeletePin("");
+                  setDeletePinError("");
+                }}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: `1px solid ${c.border}`,
+                  padding: "12px",
+                  borderRadius: "40px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: c.textMuted,
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </>
       )}

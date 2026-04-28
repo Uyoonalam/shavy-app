@@ -70,6 +70,8 @@ export default function VaultUI({ theme }: VaultUIProps) {
     
     // ALWAYS require PIN on refresh - no sessionStorage check
     const hasPin = localStorage.getItem("shavy_vault_pin");
+    console.log("Has PIN:", hasPin);
+    console.log("Is locked:", isLocked);
     if (!hasPin) {
       setIsLocked(false);
     } else {

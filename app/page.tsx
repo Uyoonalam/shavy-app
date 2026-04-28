@@ -99,7 +99,7 @@ export default function Page() {
     document.body.classList.add(`${theme}-theme`);
     
     // Outside color opposite of inside theme
-    const outsideColor = theme === "light" ? "#0a0a0a" : "#f0f0f0";
+    const outsideColor = theme === "light" ? "#201710" : "#f0f0f0";
     document.body.style.setProperty("background-color", outsideColor, "important");
     document.body.style.transition = "background-color 0.3s ease";
   }, [theme]);

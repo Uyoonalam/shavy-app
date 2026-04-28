@@ -14,31 +14,34 @@ export default function SignInUI({ setScreen, theme }: any) {
   };
 
   const handleSignIn = () => {
-    // Demo credentials check
-    if (email === "demo@shavy.com" && password === "demo123") {
-      localStorage.setItem("shavy_user_email", email);
-      localStorage.setItem("shavy_user_password", password);
-      showToast("✅ Welcome back!");
-      setTimeout(() => setScreen("app"), 500);
-      return;
-    }
-    
-    // Regular validation
-    const savedEmail = localStorage.getItem("shavy_user_email");
-    const savedPassword = localStorage.getItem("shavy_user_password");
-    
-    if (!email || !password) {
-      showToast("⚠️ Please enter email and password");
-      return;
-    }
-    
-    if (email === savedEmail && password === savedPassword) {
-      showToast("✅ Login successful!");
-      setTimeout(() => setScreen("app"), 500);
-    } else {
-      showToast("❌ Invalid email or password");
-    }
-  };
+  // Demo credentials check
+  if (email === "demo@shavy.com" && password === "demo123") {
+    localStorage.setItem("shavy_user_email", email);
+    localStorage.setItem("shavy_user_password", password);
+    // PIN is already set from signup, no need to set again
+    showToast("✅ Welcome back!");
+    setTimeout(() => setScreen("app"), 500);
+    return;
+  }
+  
+  // Regular validation
+  const savedEmail = localStorage.getItem("shavy_user_email");
+  const savedPassword = localStorage.getItem("shavy_user_password");
+  
+  if (!email || !password) {
+    showToast("⚠️ Please enter email and password");
+    return;
+  }
+  
+  if (email === savedEmail && password === savedPassword) {
+    // PIN is already in localStorage from signup
+    // No need to do anything with PIN here
+    showToast("✅ Login successful!");
+    setTimeout(() => setScreen("app"), 500);
+  } else {
+    showToast("❌ Invalid email or password");
+  }
+};
 
   const fillDemoCredentials = () => {
     setEmail("demo@shavy.com");
@@ -286,16 +289,6 @@ export default function SignInUI({ setScreen, theme }: any) {
           >
             Sign up →
           </span>
-        </p>
-        
-        <p style={{
-          fontSize: "9px",
-          color: theme === "dark" ? "#6b7280" : "#9ca3af",
-          textAlign: "center",
-          marginTop: "12px",
-          opacity: 0.7,
-        }}>
-          Demo: demo@shavy.com / demo123
         </p>
       </div>
     </main>

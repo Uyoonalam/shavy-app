@@ -54,7 +54,10 @@ export default function SignUpUI({ setScreen, theme }: any) {
     showToast("⚠️ PIN must be exactly 4 digits");
     return;
   }
+  
+  // SAVE PIN TO LOCALSTORAGE - MAKE SURE THIS LINE EXISTS
   localStorage.setItem("shavy_vault_pin", pin);
+  console.log("PIN saved:", pin);  // Debug log
 
   // Save user info
   localStorage.setItem("shavy_user_name", fullName);
@@ -66,13 +69,14 @@ export default function SignUpUI({ setScreen, theme }: any) {
 };
 
   const fillDemoCredentials = () => {
-    setFullName("Demo User");
-    setEmail("demo@shavy.com");
-    setPassword("demo123");
-    setPin("1111");
-    setConfirmPin("1111");
-    showToast("✅ Demo credentials loaded!");
-  };
+  setFullName("Demo User");
+  setEmail("demo@shavy.com");
+  setPassword("demo123");
+  setPin("1111");
+  setConfirmPin("1111");
+  localStorage.setItem("shavy_vault_pin", "1111");  // Add this line
+  showToast("✅ Demo credentials loaded!");
+};
 
   return (
     <main 
