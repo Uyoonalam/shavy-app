@@ -16,11 +16,89 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
   const [name, setName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [demoFilled, setDemoFilled] = useState(false);
 
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(null), 2000);
   };
+
+  const fillDemoPayment = () => {
+  setName("John Doe");
+  setCardNumber("4242 4242 4242 4242");
+  setExpiry("12/28");
+  setCvv("123");
+  setDemoFilled(true);
+  showToast("💳 Demo payment details filled!");
+};
+
+  const triggerConfetti = () => {
+  // Find the phone frame container
+  const phoneFrame = document.querySelector('[style*="border-radius: 44px"]') as HTMLElement;
+  const container = phoneFrame || document.body;
+  
+  const canvas = document.createElement("canvas");
+  canvas.style.position = "absolute";
+  canvas.style.top = "0";
+  canvas.style.left = "0";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "1000";
+  canvas.style.borderRadius = "44px";
+  canvas.style.overflow = "hidden";
+  container.style.position = "relative";
+  container.appendChild(canvas);
+  
+  const ctx = canvas.getContext("2d");
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  
+  const particles: { x: number; y: number; vx: number; vy: number; size: number; color: string }[] = [];
+  const colors = ["#d4af37", "#b8860b", "#ffd700", "#daa520", "#f5e050"];
+  
+  for (let i = 0; i < 150; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 8,
+      vy: (Math.random() - 0.5) * 8 - 6,
+      size: Math.random() * 5 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    });
+  }
+  
+  let animationId: number;
+  let startTime = Date.now();
+  
+  const animate = () => {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let allFinished = true;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.2;
+      
+      if (p.y < canvas.height + 50 && p.x > -50 && p.x < canvas.width + 50) {
+        allFinished = false;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      }
+    }
+    
+    if (allFinished || Date.now() - startTime > 2000) {
+      cancelAnimationFrame(animationId);
+      container.removeChild(canvas);
+    } else {
+      animationId = requestAnimationFrame(animate);
+    }
+  };
+  
+  animate();
+};
 
   const darkColors = {
     bg: "#1F1C18",
@@ -68,7 +146,6 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
       
       if (paymentDetails) {
         if (paymentDetails.type === "course") {
-          // SAVE THE ENROLLED COURSE
           const saved = localStorage.getItem("shavy_enrolled_courses");
           const enrolled = saved ? JSON.parse(saved) : [];
           const courseIdMap: Record<string, number> = {
@@ -85,16 +162,20 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
             localStorage.setItem("shavy_enrolled_courses", JSON.stringify(enrolled));
           }
           showToast(`✅ Successfully enrolled in "${paymentDetails.title}"!`);
+          triggerConfetti();
         } else if (paymentDetails.type === "founders") {
           localStorage.setItem("shavy_founders_enabled", "true");
           showToast(`✅ Founders Ecosystem enabled! Check your Vault tab.`);
+          triggerConfetti();
         } else if (paymentDetails.type === "cvbuilder") {
           localStorage.setItem("shavy_cvbuilder_enabled", "true");
           showToast(`✅ CV Builder enabled! Check your Vault tab.`);
+          triggerConfetti();
         } else if (paymentDetails.type === "ads") {
           localStorage.setItem("shavy_ads_removed", "true");
           window.dispatchEvent(new CustomEvent("adsRemoved"));
           showToast(`✅ Ads removed! Enjoy an ad-free experience.`);
+          triggerConfetti();
         }
       }
       
@@ -104,7 +185,6 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
 
   if (!paymentDetails) return null;
 
-  // Get display title and subtitle based on payment type
   const getDisplayTitle = () => {
     if (paymentDetails.type === "course") return paymentDetails.title;
     if (paymentDetails.type === "founders") return "Founders Ecosystem";
@@ -146,6 +226,26 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
           {toast}
         </div>
       )}
+
+      <button
+        onClick={fillDemoPayment}
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          background: "rgba(212, 175, 55, 0.15)",
+          border: "1px solid #d4af37",
+          borderRadius: "20px",
+          padding: "4px 12px",
+          fontSize: "11px",
+          fontWeight: "500",
+          color: "#d4af37",
+          cursor: "pointer",
+          zIndex: 20,
+        }}
+      >
+        ⚡ Demo Fill
+      </button>
 
       <button
         onClick={onBack}

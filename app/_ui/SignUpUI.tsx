@@ -1,6 +1,74 @@
 "use client";
 
+import { useState } from "react";
+
 export default function SignUpUI({ setScreen, theme }: any) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  const handleSignUp = () => {
+    // Validate all fields are filled
+    if (!fullName.trim()) {
+      showToast("⚠️ Please enter your full name");
+      return;
+    }
+    if (!email.trim()) {
+      showToast("⚠️ Please enter your email");
+      return;
+    }
+    if (!email.includes("@") || !email.includes(".")) {
+      showToast("⚠️ Please enter a valid email address");
+      return;
+    }
+    if (!password) {
+      showToast("⚠️ Please enter a password");
+      return;
+    }
+    if (password.length < 4) {
+      showToast("⚠️ Password must be at least 4 characters");
+      return;
+    }
+
+    // Validate PIN (optional but must match if provided)
+    if (pin || confirmPin) {
+      if (pin !== confirmPin) {
+        showToast("⚠️ PINs do not match");
+        return;
+      }
+      if (pin.length < 4) {
+        showToast("⚠️ PIN must be at least 4 digits");
+        return;
+      }
+      localStorage.setItem("shavy_vault_pin", pin);
+    }
+
+    // Save user info
+    localStorage.setItem("shavy_user_name", fullName);
+    localStorage.setItem("shavy_user_email", email);
+    localStorage.setItem("shavy_user_password", password);
+    
+    showToast("✅ Account created successfully!");
+    setTimeout(() => setScreen("app"), 1000);
+  };
+
+  const fillDemoCredentials = () => {
+    setFullName("Admin User");
+    setEmail("123@g.com");
+    setPassword("6969");
+    setPin("1010");
+    setConfirmPin("1010");
+    showToast("✅ Demo credentials loaded!");
+  };
+
   return (
     <main 
       style={{
@@ -16,6 +84,47 @@ export default function SignUpUI({ setScreen, theme }: any) {
           : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
       }}
     >
+      {toast && (
+        <div style={{
+          position: "fixed",
+          bottom: "80px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: theme === "dark" ? "#2A2622" : "#ffffff",
+          color: "#d4af37",
+          padding: "12px 20px",
+          borderRadius: "40px",
+          fontSize: "13px",
+          fontWeight: "500",
+          zIndex: 200,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          border: `1px solid ${theme === "dark" ? "#3a3a3a" : "#e5e7eb"}`,
+        }}>
+          {toast}
+        </div>
+      )}
+
+      {/* Demo Quick-Fill Button */}
+      <button
+        onClick={fillDemoCredentials}
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          background: "rgba(212, 175, 55, 0.15)",
+          border: "1px solid #d4af37",
+          borderRadius: "20px",
+          padding: "4px 12px",
+          fontSize: "11px",
+          fontWeight: "500",
+          color: "#d4af37",
+          cursor: "pointer",
+          zIndex: 20,
+        }}
+      >
+        ⚡ Demo Fill
+      </button>
+
       {/* Back button */}
       <div
         onClick={() => setScreen("getstarted")}
@@ -85,7 +194,9 @@ export default function SignUpUI({ setScreen, theme }: any) {
       {/* Form */}
       <div style={{ width: "100%", maxWidth: "320px" }}>
         <input
-          placeholder="Full Name"
+          placeholder="Full Name *"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
           style={{
             width: "100%",
             padding: "14px 18px",
@@ -109,8 +220,10 @@ export default function SignUpUI({ setScreen, theme }: any) {
           }}
         />
         <input
-          placeholder="Email"
+          placeholder="Email *"
           type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           style={{
             width: "100%",
             padding: "14px 18px",
@@ -134,8 +247,10 @@ export default function SignUpUI({ setScreen, theme }: any) {
           }}
         />
         <input
-          placeholder="Password"
+          placeholder="Password *"
           type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           style={{
             width: "100%",
             padding: "14px 18px",
@@ -144,7 +259,7 @@ export default function SignUpUI({ setScreen, theme }: any) {
             background: theme === "dark" ? "#1f2937" : "#ffffff",
             color: theme === "dark" ? "#fefefe" : "#1f2937",
             fontSize: "15px",
-            marginBottom: "24px",
+            marginBottom: "16px",
             outline: "none",
             transition: "all 0.2s",
             boxSizing: "border-box",
@@ -159,37 +274,83 @@ export default function SignUpUI({ setScreen, theme }: any) {
           }}
         />
 
-        {/* Sign Up Button */}
+        {/* Vault PIN Setup */}
+        <div style={{ marginBottom: "16px" }}>
+          <input
+            type="password"
+            placeholder="Set Vault PIN (4-6 digits, optional)"
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            style={{
+              width: "100%",
+              padding: "14px 18px",
+              borderRadius: "16px",
+              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+              background: theme === "dark" ? "#1f2937" : "#ffffff",
+              color: theme === "dark" ? "#fefefe" : "#1f2937",
+              fontSize: "15px",
+              marginBottom: "12px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Confirm Vault PIN"
+            value={confirmPin}
+            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            style={{
+              width: "100%",
+              padding: "14px 18px",
+              borderRadius: "16px",
+              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+              background: theme === "dark" ? "#1f2937" : "#ffffff",
+              color: theme === "dark" ? "#fefefe" : "#1f2937",
+              fontSize: "15px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        <p style={{
+          fontSize: "10px",
+          color: theme === "dark" ? "#6b7280" : "#9ca3af",
+          textAlign: "center",
+          marginBottom: "8px",
+        }}>
+          💡 Quick demo: Click "⚡ Demo Fill" (Email: 123@g.com, Password: 6969, PIN: 1010)
+        </p>
+
         <button
-  onClick={() => setScreen("app")}  // or "app" for SignIn/SignUp
-  style={{
-    width: "100%",
-    maxWidth: "320px",
-    background: "transparent",
-    border: "2px solid rgb(212, 175, 55)",
-    padding: "16px",
-    fontSize: "16px",
-    fontWeight: "700",
-    borderRadius: "60px",
-    color: theme === "dark" ? "#d4af37" : "#b8860b",
-    cursor: "pointer",
-    transition: "transform 0.2s ease",
-    marginTop: "8px",
-    backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
-    backgroundSize: "200% 100%",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "0% 50%",
-    animation: "sweepingBorderGlow 10s linear infinite",
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = "scale(1.02)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = "scale(1)";
-  }}
->
-  Sign Up →
-</button>
+          onClick={handleSignUp}
+          style={{
+            width: "100%",
+            maxWidth: "320px",
+            background: "transparent",
+            border: "2px solid rgb(212, 175, 55)",
+            padding: "16px",
+            fontSize: "16px",
+            fontWeight: "700",
+            borderRadius: "60px",
+            color: theme === "dark" ? "#d4af37" : "#b8860b",
+            cursor: "pointer",
+            transition: "transform 0.2s ease",
+            marginTop: "8px",
+            backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
+            backgroundSize: "200% 100%",
+            backgroundRepeat: "no-repeat",
+            animation: "sweepingBorderGlow 10s linear infinite",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          Sign Up
+        </button>
 
         <p style={{
           textAlign: "center",

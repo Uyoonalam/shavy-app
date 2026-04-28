@@ -1,6 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
+
+  const testimonials = [
+    { name: "Sarah Chen", role: "Marketing Director", text: "Shavy helped me find a company with 92% trust score! The audit feature is a game-changer." },
+    { name: "Mike Rodriguez", role: "Software Engineer", text: "The vault keeps all my data safe. Love that everything stays on my device!" },
+    { name: "Jessica Williams", role: "HR Professional", text: "Finally a platform that respects privacy. The skill analysis is spot-on." },
+    { name: "David Kim", role: "Operations Lead", text: "I found my dream job through Shavy's company recommendations. Highly recommend!" },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <main 
       style={{
@@ -12,7 +30,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
         padding: "40px 24px",
         textAlign: "center",
         position: "relative",
-        overflow: "hidden",
+        overflow: "auto",
         background: theme === "dark" 
           ? "linear-gradient(145deg, #1a1f2e 0%, #0f1118 100%)"
           : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
@@ -78,7 +96,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
       <div
         style={{
           position: "relative",
-          marginBottom: "32px",
+          marginBottom: "24px",
           transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
           cursor: "pointer",
         }}
@@ -139,7 +157,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
-          marginBottom: "12px",
+          marginBottom: "8px",
         }}
       >
         Shavy
@@ -149,9 +167,9 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
       <p 
         key={`tagline-${theme}`}
         style={{
-          fontSize: "20px",
+          fontSize: "18px",
           maxWidth: "340px",
-          marginBottom: "40px",
+          marginBottom: "32px",
           lineHeight: "1.4",
           background: theme === "dark"
             ? "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)"
@@ -164,37 +182,88 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
         Illuminate your path
       </p>
 
-      {/* CTA Button with side-to-side sweep */}
+      {/* Testimonial Carousel */}
+      <div style={{
+        maxWidth: "280px",
+        textAlign: "center",
+        marginBottom: "32px",
+        width: "100%",
+      }}>
+        <div style={{
+          backgroundColor: theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+          borderRadius: "20px",
+          padding: "20px",
+          backdropFilter: "blur(10px)",
+          transition: "all 0.3s ease",
+        }}>
+          <p style={{ 
+            fontSize: "14px", 
+            color: theme === "dark" ? "#e2e8f0" : "#334155", 
+            lineHeight: "1.5", 
+            marginBottom: "12px",
+            fontStyle: "italic",
+          }}>
+            "{testimonials[testimonialIndex].text}"
+          </p>
+          <p style={{ fontSize: "13px", fontWeight: "600", color: "#d4af37", marginBottom: "2px" }}>
+            — {testimonials[testimonialIndex].name}
+          </p>
+          <p style={{ fontSize: "11px", color: theme === "dark" ? "#94a3b8" : "#64748b" }}>
+            {testimonials[testimonialIndex].role}
+          </p>
+        </div>
+        
+        {/* Dots indicator */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "12px" }}>
+          {testimonials.map((_, idx) => (
+            <div
+              key={idx}
+              onClick={() => setTestimonialIndex(idx)}
+              style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                backgroundColor: idx === testimonialIndex ? "#d4af37" : (theme === "dark" ? "#3a3a3a" : "#cbd5e1"),
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* CTA Button */}
       <button
-  onClick={() => setScreen("signin")}  // or "app" for SignIn/SignUp
-  style={{
-    width: "100%",
-    maxWidth: "320px",
-    background: "transparent",
-    border: "2px solid rgb(212, 175, 55)",
-    padding: "16px",
-    fontSize: "16px",
-    fontWeight: "700",
-    borderRadius: "60px",
-    color: theme === "dark" ? "#d4af37" : "#b8860b",
-    cursor: "pointer",
-    transition: "transform 0.2s ease",
-    marginTop: "8px",
-    backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
-    backgroundSize: "200% 100%",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "0% 50%",
-    animation: "sweepingBorderGlow 10s linear infinite",
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = "scale(1.02)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = "scale(1)";
-  }}
->
-  Get Started →
-</button>
+        onClick={() => setScreen("signin")}
+        style={{
+          width: "100%",
+          maxWidth: "320px",
+          background: "transparent",
+          border: "2px solid rgb(212, 175, 55)",
+          padding: "14px",
+          fontSize: "16px",
+          fontWeight: "700",
+          borderRadius: "60px",
+          color: theme === "dark" ? "#d4af37" : "#b8860b",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
+          backgroundSize: "200% 100%",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "0% 50%",
+          animation: "sweepingBorderGlow 10s linear infinite",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.02)";
+          e.currentTarget.style.boxShadow = "0 0 15px rgba(212,175,55,0.3)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      >
+        Get Started →
+      </button>
 
       <style>{`
         @keyframes float {

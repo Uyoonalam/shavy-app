@@ -6,6 +6,20 @@ interface HomeUIProps {
   theme: "dark" | "light";
 }
 
+// Daily tips array
+const tips = [
+  { emoji: "💡", text: "Update your skills monthly to stay relevant in your industry" },
+  { emoji: "🎯", text: "Companies with 80%+ trust scores are 3x more likely to have positive culture" },
+  { emoji: "🔐", text: "Your data never leaves your device — Shavy is 100% privacy-first" },
+  { emoji: "📊", text: "The Audit tab shows real controversies from public records" },
+  { emoji: "🚀", text: "Premium users get access to exclusive networking opportunities" },
+  { emoji: "📄", text: "Upload your latest resume to get updated skill recommendations" },
+  { emoji: "⭐", text: "Jobs at Gold-verified companies have 40% lower turnover rates" },
+  { emoji: "🎓", text: "Free courses can help you land your next promotion" },
+  { emoji: "🔒", text: "Your vault is encrypted with your PIN — keep it safe!" },
+  { emoji: "📈", text: "Track company trust scores over time in the Audit tab" },
+];
+
 export default function HomeUI({ theme }: HomeUIProps) {
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -28,6 +42,28 @@ export default function HomeUI({ theme }: HomeUIProps) {
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillProficiency, setNewSkillProficiency] = useState(50);
   const [skillsExpanded, setSkillsExpanded] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [typingIndex, setTypingIndex] = useState(0);
+  
+  // Random daily tip (changes on each reload)
+  const [dailyTip] = useState(() => tips[Math.floor(Math.random() * tips.length)]);
+
+  const fullText = "Upload your CV to get personalized job matches and skill analysis";
+
+  // Typing animation effect
+  useEffect(() => {
+    if (!resumeUploaded && !isScanning) {
+      if (typingIndex < fullText.length) {
+        const timeout = setTimeout(() => {
+          setTypedText(prev => prev + fullText[typingIndex]);
+          setTypingIndex(prev => prev + 1);
+        }, 30);
+        return () => clearTimeout(timeout);
+      }
+    } else {
+      setTypedText(fullText);
+    }
+  }, [typingIndex, resumeUploaded, isScanning]);
 
   const colors = {
     dark: {
@@ -106,6 +142,8 @@ export default function HomeUI({ theme }: HomeUIProps) {
           "Operations Consultant"
         ]);
         setSkillLevels(savedLevels);
+        setTypedText(fullText);
+        setTypingIndex(fullText.length);
       }
     }
   }, []);
@@ -115,8 +153,19 @@ export default function HomeUI({ theme }: HomeUIProps) {
     localStorage.setItem("shavy_skills", JSON.stringify(newSkills));
     localStorage.setItem("shavy_description", newDesc);
     localStorage.setItem("shavy_skill_levels", JSON.stringify(newLevels));
+    
+    localStorage.setItem("shavy_extracted_name", "Marcus V. Sterling");
+    localStorage.setItem("shavy_extracted_email", "m.sterling.ops@proton.me");
+    localStorage.setItem("shavy_extracted_phone", "+1 (217) 555-0198");
+    localStorage.setItem("shavy_extracted_address", "742 Evergreen Terrace, Springfield, IL 62704");
+    localStorage.setItem("shavy_extracted_experience", "Strategic Operations Director with 12+ years of experience optimizing supply chain logistics");
+    localStorage.setItem("shavy_extracted_education", "M.S. Supply Chain Management, Purdue University (2014)");
+    localStorage.setItem("shavy_extracted_certifications", JSON.stringify(["Lean Six Sigma Black Belt", "PMP Certified", "SAP Certified"]));
+    
+    localStorage.setItem("shavy_user_name", "Marcus V. Sterling");
+    localStorage.setItem("shavy_user_email", "m.sterling.ops@proton.me");
   };
-
+  
   const handleFakeScan = (isReupload: boolean = false) => {
     setIsScanning(true);
     let stepIndex = 0;
@@ -189,6 +238,8 @@ export default function HomeUI({ theme }: HomeUIProps) {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setTypedText(fullText);
+      setTypingIndex(fullText.length);
       handleFakeScan(false);
     }
   };
@@ -251,7 +302,6 @@ export default function HomeUI({ theme }: HomeUIProps) {
     setShowEditSkill(true);
   };
 
-  // Top 3 skills for collapsed view
   const topThreeSkills = skills.slice(0, 3).map(skill => ({
     name: skill,
     level: skillLevels[skill] || 75
@@ -260,6 +310,26 @@ export default function HomeUI({ theme }: HomeUIProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {toast && <div className="toast">{toast}</div>}
+
+      {/* Daily Tip Banner - Shows only after resume is uploaded */}
+      {resumeUploaded && !isScanning && (
+        <div style={{
+          backgroundColor: theme === "dark" ? "rgba(212,175,55,0.08)" : "rgba(212,175,55,0.06)",
+          borderRadius: "16px",
+          padding: "14px 16px",
+          border: `1px solid ${theme === "dark" ? "rgba(212,175,55,0.2)" : "rgba(212,175,55,0.15)"}`,
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          transition: "all 0.2s ease",
+        }}>
+          <span style={{ fontSize: "24px" }}>{dailyTip.emoji}</span>
+          <span style={{ fontSize: "12px", color: currentColors.text, lineHeight: "1.4", flex: 1 }}>
+            {dailyTip.text}
+          </span>
+          <span style={{ fontSize: "10px", color: currentColors.textMuted, opacity: 0.6 }}>💡 Tip</span>
+        </div>
+      )}
 
       {/* Resume Upload Section */}
       <div
@@ -286,8 +356,11 @@ export default function HomeUI({ theme }: HomeUIProps) {
             <h3 style={{ fontSize: "18px", fontWeight: "600", color: currentColors.text, marginBottom: "8px" }}>
               No resume uploaded yet
             </h3>
-            <p style={{ fontSize: "13px", color: currentColors.textMuted, marginBottom: "20px" }}>
-              Upload your CV to get personalized job matches and skill analysis
+            <p style={{ fontSize: "13px", color: currentColors.textMuted, marginBottom: "20px", minHeight: "60px" }}>
+              {typedText}
+              {typingIndex < fullText.length && (
+                <span style={{ display: "inline-block", width: "2px", height: "16px", backgroundColor: "#d4af37", marginLeft: "2px", animation: "blink 1s step-end infinite" }} />
+              )}
             </p>
             <label
               style={{
@@ -600,7 +673,7 @@ export default function HomeUI({ theme }: HomeUIProps) {
                     max="100"
                     value={newSkillProficiency}
                     onChange={(e) => setNewSkillProficiency(parseInt(e.target.value))}
-                    style={{ width: "100%", margin: "0" }}
+                    style={{ width: "200px", margin: "0" }}
                   />
                 </div>
                 <div style={{ display: "flex", gap: "12px" }}>
@@ -705,7 +778,7 @@ export default function HomeUI({ theme }: HomeUIProps) {
                     max="100"
                     value={editSkillProficiency}
                     onChange={(e) => setEditSkillProficiency(parseInt(e.target.value))}
-                    style={{ width: "100%", margin: "0" }}
+                    style={{ width: "200px", margin: "0" }}
                   />
                 </div>
                 <div style={{ display: "flex", gap: "12px" }}>
@@ -813,7 +886,6 @@ export default function HomeUI({ theme }: HomeUIProps) {
           >
             <div onClick={() => setShowDescription(!showDescription)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <h3 style={{ fontSize: "16px", fontWeight: "600", color: currentColors.text }}>📝 Professional Summary</h3>
-              <span style={{ fontSize: "18px", color: currentColors.textMuted }}>{showDescription ? "▲" : "▼"}</span>
             </div>
             {showDescription && <p style={{ fontSize: "14px", color: currentColors.textMuted, marginTop: "16px", lineHeight: "1.5" }}>{description}</p>}
           </div>
@@ -879,11 +951,31 @@ export default function HomeUI({ theme }: HomeUIProps) {
           )}
         </>
       )}
+      
+
+      {/* Powered by Footer */}
+      <div style={{
+        marginTop: "8px",
+        paddingTop: "12px",
+        borderTop: `1px solid ${currentColors.border}`,
+        textAlign: "center",
+      }}>
+        <p style={{ fontSize: "10px", color: currentColors.textMuted, margin: 0 }}>
+          🔒 Privacy-first career platform • All data stays on your device
+        </p>
+        <p style={{ fontSize: "9px", color: currentColors.textMuted, marginTop: "4px", opacity: 0.7 }}>
+          © 2026 Shavy — Illuminate your path
+        </p>
+      </div>
 
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(0.98); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
       `}</style>
     </div>

@@ -53,6 +53,7 @@ const goodCompaniesDetails = {
     aiGeneratedDescription: "Amazon Logistics is a global leader in supply chain and last-mile delivery. With $574B+ in annual revenue, they have successfully integrated AI-driven warehouse automation and predictive logistics. Their financial health is excellent, with consistent year-over-year growth. Employee ratings are high for compensation and career growth, though work-life balance remains a concern. Recent antitrust scrutiny has not materially impacted operations.",
     trustScore: 94,
     verificationBadge: "🥇 Gold",
+    trendData: [88, 89, 90, 91, 91, 92, 92, 93, 93, 94, 94, 94], // Last 12 months
   },
   "DHL Supply Chain": {
     general: {
@@ -98,6 +99,7 @@ const goodCompaniesDetails = {
     aiGeneratedDescription: "DHL Supply Chain is the world's leading logistics provider, operating in 220+ countries. They have pioneered green logistics initiatives and digital transformation in warehousing. Financially stable with strong European market presence. Employee satisfaction scores are above industry average, particularly in international assignments.",
     trustScore: 87,
     verificationBadge: "🥇 Gold",
+    trendData: [85, 86, 86, 87, 87, 87, 86, 86, 87, 87, 87, 87],
   },
   "UPS": {
     general: {
@@ -143,6 +145,7 @@ const goodCompaniesDetails = {
     aiGeneratedDescription: "UPS is America's largest parcel delivery company with over 100 years of operational excellence. Under CEO Carol Tomé's leadership, UPS has focused on profitability over volume. Financially strong with industry-leading 9.1% profit margins. Employee satisfaction is mixed — strong benefits and compensation offset by demanding work conditions.",
     trustScore: 91,
     verificationBadge: "🥇 Gold",
+    trendData: [90, 91, 91, 91, 90, 90, 91, 91, 91, 91, 91, 91],
   },
 };
 
@@ -159,6 +162,7 @@ const midCompaniesDetails = {
     aiGeneratedDescription: "FedEx is a global logistics giant with significant legal challenges. Financially stable but showing lower margins than UPS. Employee reviews cite demanding work conditions.",
     trustScore: 71,
     verificationBadge: "✅ Verified",
+    trendData: [75, 74, 73, 72, 72, 71, 71, 70, 70, 71, 71, 71],
   },
   "XPO Logistics": {
     general: { name: "XPO Logistics", taxId: "82-1234567", registrationNumber: "XPO-CT-2000-005", founded: 2000, ceo: "Mario Harik", headquarters: "Greenwich, Connecticut, USA", employees: "40,000+", website: "https://www.xpo.com/careers", stockSymbol: "NYSE: XPO" },
@@ -171,6 +175,7 @@ const midCompaniesDetails = {
     aiGeneratedDescription: "XPO Logistics is a less-than-truckload carrier with a history of aggressive acquisitions. Margins remain thin compared to industry leaders.",
     trustScore: 58,
     verificationBadge: "⏳ Pending",
+    trendData: [62, 61, 60, 59, 59, 58, 58, 57, 57, 58, 58, 58],
   },
   "J.B. Hunt Transport": {
     general: { name: "J.B. Hunt Transport", taxId: "71-1234567", registrationNumber: "JBHT-AR-1961-006", founded: 1961, ceo: "Shelley Simpson", headquarters: "Lowell, Arkansas, USA", employees: "34,000+", website: "https://www.jbhunt.com/careers", stockSymbol: "NASDAQ: JBHT" },
@@ -183,6 +188,7 @@ const midCompaniesDetails = {
     aiGeneratedDescription: "J.B. Hunt specializes in intermodal freight. The company faces a serious lawsuit over a fatal 2023 accident. Financially stable with moderate profit margins.",
     trustScore: 62,
     verificationBadge: "⏳ Pending",
+    trendData: [65, 64, 64, 63, 63, 62, 62, 61, 61, 62, 62, 62],
   },
 };
 
@@ -199,6 +205,7 @@ const badCompaniesDetails = {
     aiGeneratedDescription: "Yellow Freight was a century-old American trucking company that filed for Chapter 11 bankruptcy in 2023, abandoning 30,000 workers.",
     trustScore: 22,
     verificationBadge: "❌ Not Verified",
+    trendData: [45, 42, 38, 35, 32, 28, 25, 23, 22, 22, 22, 22],
   },
   "Trucking Nation LLC": {
     general: { name: "Trucking Nation LLC", taxId: "84-1234567", registrationNumber: "TRN-USA-2015-008", founded: 2015, ceo: "Unknown", headquarters: "Unknown", employees: "15-50", website: "No public presence", stockSymbol: "Private" },
@@ -211,6 +218,7 @@ const badCompaniesDetails = {
     aiGeneratedDescription: "Trucking Nation LLC is a small regional operator with no public presence. Lack of transparency makes verification impossible.",
     trustScore: 31,
     verificationBadge: "❌ Not Verified",
+    trendData: [38, 37, 36, 35, 34, 33, 32, 32, 31, 31, 31, 31],
   },
   "Speedy Freight Solutions": {
     general: { name: "Speedy Freight Solutions", taxId: "45-1234567", registrationNumber: "SFS-NV-2018-009", founded: 2018, ceo: "Unknown", headquarters: "Las Vegas, Nevada (alleged)", employees: "10-30", website: "Defunct", stockSymbol: "Private" },
@@ -223,7 +231,110 @@ const badCompaniesDetails = {
     aiGeneratedDescription: "Speedy Freight Solutions is a confirmed wage theft operator. A Canadian tribunal ordered them to pay unpaid wages to a driver.",
     trustScore: 28,
     verificationBadge: "❌ Not Verified",
+    trendData: [42, 40, 38, 36, 34, 32, 30, 29, 28, 28, 28, 28],
   },
+};
+
+// Trend Chart Component
+const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark" | "light"; companyName: string }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const maxScore = 100;
+  const minScore = 0;
+  const height = 80;
+  const width = 280;
+  
+  const colors = theme === "dark" 
+    ? { bar: "#d4af37", barHover: "#f0c74a", text: "#94a3b8", label: "#62748c" }
+    : { bar: "#b8860b", barHover: "#d4af37", text: "#64748b", label: "#94a3b8" };
+  
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  const getBarHeight = (score: number) => (score / maxScore) * height;
+  
+  return (
+    <div style={{ marginTop: "16px", padding: "12px", backgroundColor: theme === "dark" ? "#1F1C18" : "#f8fafc", borderRadius: "12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+        <span style={{ fontSize: "14px" }}>📈</span>
+        <span style={{ fontSize: "12px", fontWeight: "500", color: colors.text }}>Trust Score Trend (12 months)</span>
+        <span style={{ fontSize: "10px", color: colors.label, marginLeft: "auto" }}>
+          {data[data.length - 1] > data[0] ? "↑ Improving" : data[data.length - 1] < data[0] ? "↓ Declining" : "→ Stable"}
+        </span>
+      </div>
+      
+      <div style={{ position: "relative", height: `${height + 25}px` }}>
+        {/* Bars */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", height: `${height}px`, gap: "2px" }}>
+          {data.map((score, idx) => (
+            <div
+              key={idx}
+              style={{
+                flex: 1,
+                height: `${getBarHeight(score)}px`,
+                backgroundColor: hoveredIndex === idx ? colors.barHover : colors.bar,
+                borderRadius: "4px 4px 0 0",
+                transition: "all 0.2s ease",
+                cursor: "pointer",
+                position: "relative",
+                minWidth: "18px",
+              }}
+              onMouseEnter={() => setHoveredIndex(idx)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              {hoveredIndex === idx && (
+                <div style={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  marginBottom: "4px",
+                  backgroundColor: theme === "dark" ? "#3a3a3a" : "#e2e8f0",
+                  padding: "2px 6px",
+                  borderRadius: "6px",
+                  fontSize: "10px",
+                  fontWeight: "600",
+                  color: theme === "dark" ? "#e2e8f0" : "#0f172a",
+                  whiteSpace: "nowrap",
+                  zIndex: 10,
+                }}>
+                  {score}%
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        {/* Month Labels */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", gap: "2px" }}>
+          {months.map((month, idx) => (
+            <div
+              key={idx}
+              style={{
+                flex: 1,
+                fontSize: "7px",
+                color: colors.label,
+                textAlign: "center",
+                minWidth: "18px",
+              }}
+            >
+              {month}
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Mini summary */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", fontSize: "10px", color: colors.text }}>
+        <span>Start: {data[0]}%</span>
+        <span>Current: {data[data.length - 1]}%</span>
+        <span style={{ 
+          color: data[data.length - 1] > data[0] ? "#22c55e" : data[data.length - 1] < data[0] ? "#ef4444" : "#eab308"
+        }}>
+          {data[data.length - 1] > data[0] ? `▲ +${data[data.length - 1] - data[0]}` : 
+           data[data.length - 1] < data[0] ? `▼ ${data[data.length - 1] - data[0]}` : "→ 0"}
+        </span>
+      </div>
+    </div>
+  );
 };
 
 export default function AuditUI({ theme }: AuditUIProps) {
@@ -433,11 +544,17 @@ export default function AuditUI({ theme }: AuditUIProps) {
           </div>
 
           <div style={{ padding: "20px" }}>
+            {/* TREND CHART - NEW ADDITION */}
+            {details.trendData && (
+              <TrendChart data={details.trendData} theme={theme} companyName={viewingCompany.name} />
+            )}
+            
             <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: "14px",
               marginBottom: "24px",
+              marginTop: "24px",
               padding: "16px",
               backgroundColor: currentColors.secondaryBg,
               borderRadius: "16px",
@@ -546,15 +663,15 @@ export default function AuditUI({ theme }: AuditUIProps) {
                 <h3 style={{ fontSize: "18px", fontWeight: "600", color: currentColors.text, margin: 0 }}>AI Analysis</h3>
               </div>
               <div style={{
-  backgroundColor: currentColors.secondaryBg,
-  borderRadius: "14px",
-  padding: "16px",
-  borderLeft: `1px solid ${currentColors.goldAccent}`,
-}}>
-              <p style={{ fontSize: "12px", color: currentColors.textMuted, lineHeight: "1.5", margin: 0 }}>
-                {details.aiGeneratedDescription}
-              </p>
-            </div>
+                backgroundColor: currentColors.secondaryBg,
+                borderRadius: "14px",
+                padding: "16px",
+                borderLeft: `1px solid ${currentColors.goldAccent}`,
+              }}>
+                <p style={{ fontSize: "12px", color: currentColors.textMuted, lineHeight: "1.5", margin: 0 }}>
+                  {details.aiGeneratedDescription}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -570,22 +687,22 @@ export default function AuditUI({ theme }: AuditUIProps) {
       
       {companies.map((company, idx) => (
         <div
-        key={idx}
-        style={{
-          backgroundColor: currentColors.cardBg,
-          borderRadius: "20px",
-          padding: "18px",
-          border: `1px solid ${hoveredCard === idx ? currentColors.goldAccent : currentColors.border}`,
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          cursor: "pointer",
-          transform: hoveredCard === idx ? "translateY(-3px)" : "translateY(0)",
-          boxShadow: hoveredCard === idx
-            ? `0 0 0 2px ${currentColors.goldAccent}40, 0 8px 16px -4px rgba(0,0,0,0.3)`
-            : "none",
-        }}
-        onMouseEnter={() => setHoveredCard(idx)}
-        onMouseLeave={() => setHoveredCard(null)}
-      >
+          key={idx}
+          style={{
+            backgroundColor: currentColors.cardBg,
+            borderRadius: "20px",
+            padding: "18px",
+            border: `1px solid ${hoveredCard === idx ? currentColors.goldAccent : currentColors.border}`,
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            cursor: "pointer",
+            transform: hoveredCard === idx ? "translateY(-3px)" : "translateY(0)",
+            boxShadow: hoveredCard === idx
+              ? `0 0 0 2px ${currentColors.goldAccent}40, 0 8px 16px -4px rgba(0,0,0,0.3)`
+              : "none",
+          }}
+          onMouseEnter={() => setHoveredCard(idx)}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div>
               <h2 style={{ fontSize: "18px", fontWeight: "700", color: currentColors.text, letterSpacing: "-0.3px" }}>

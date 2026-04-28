@@ -3,8 +3,47 @@
 import { useState } from "react";
 
 export default function SignInUI({ setScreen, theme }: any) {
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  const handleSignIn = () => {
+    // Demo credentials check
+    if (email === "123@g.com" && password === "6969") {
+      localStorage.setItem("shavy_user_email", email);
+      localStorage.setItem("shavy_user_password", password);
+      showToast("✅ Welcome back, Admin!");
+      setTimeout(() => setScreen("app"), 500);
+      return;
+    }
+    
+    // Regular validation
+    const savedEmail = localStorage.getItem("shavy_user_email");
+    const savedPassword = localStorage.getItem("shavy_user_password");
+    
+    if (!email || !password) {
+      showToast("⚠️ Please enter email and password");
+      return;
+    }
+    
+    if (email === savedEmail && password === savedPassword) {
+      showToast("✅ Login successful!");
+      setTimeout(() => setScreen("app"), 500);
+    } else {
+      showToast("❌ Invalid email or password");
+    }
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail("123@g.com");
+    setPassword("6969");
+    showToast("✅ Demo credentials loaded!");
+  };
 
   return (
     <main 
@@ -21,7 +60,47 @@ export default function SignInUI({ setScreen, theme }: any) {
           : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
       }}
     >
-      {/* Back button */}
+      {toast && (
+        <div style={{
+          position: "fixed",
+          bottom: "80px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: theme === "dark" ? "#2A2622" : "#ffffff",
+          color: "#d4af37",
+          padding: "12px 20px",
+          borderRadius: "40px",
+          fontSize: "13px",
+          fontWeight: "500",
+          zIndex: 200,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          border: `1px solid ${theme === "dark" ? "#3a3a3a" : "#e5e7eb"}`,
+        }}>
+          {toast}
+        </div>
+      )}
+
+      {/* Demo Quick-Fill Button */}
+      <button
+        onClick={fillDemoCredentials}
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          background: "rgba(212, 175, 55, 0.15)",
+          border: "1px solid #d4af37",
+          borderRadius: "20px",
+          padding: "4px 12px",
+          fontSize: "11px",
+          fontWeight: "500",
+          color: "#d4af37",
+          cursor: "pointer",
+          zIndex: 20,
+        }}
+      >
+        ⚡ Demo Fill
+      </button>
+
       <div
         onClick={() => setScreen("getstarted")}
         style={{
@@ -52,7 +131,6 @@ export default function SignInUI({ setScreen, theme }: any) {
         ← Back
       </div>
 
-      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "48px" }}>
         <h1 
           key={`title-${theme}`}
@@ -87,101 +165,86 @@ export default function SignInUI({ setScreen, theme }: any) {
         </p>
       </div>
 
-      {/* Form */}
       <div style={{ width: "100%", maxWidth: "320px" }}>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{
-            display: "block",
-            fontSize: "13px",
-            fontWeight: "500",
-            color: theme === "dark" ? "#d1d5db" : "#4b5563",
-            marginBottom: "8px",
-          }}>
-            Email
-          </label>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "8px" }}>Email</label>
           <input
             type="email"
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             style={{
               width: "100%",
               padding: "14px 18px",
               borderRadius: "16px",
-              border: `1px solid ${emailFocused ? "#d4af37" : (theme === "dark" ? "#374151" : "#e5e7eb")}`,
+              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
               background: theme === "dark" ? "#1f2937" : "#ffffff",
               color: theme === "dark" ? "#fefefe" : "#1f2937",
               fontSize: "15px",
-              transition: "all 0.2s",
               outline: "none",
-              boxShadow: emailFocused ? "0 0 0 3px rgba(212,175,55,0.1)" : "none",
               boxSizing: "border-box",
             }}
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
           />
         </div>
 
         <div style={{ marginBottom: "28px" }}>
-          <label style={{
-            display: "block",
-            fontSize: "13px",
-            fontWeight: "500",
-            color: theme === "dark" ? "#d1d5db" : "#4b5563",
-            marginBottom: "8px",
-          }}>
-            Password
-          </label>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "8px" }}>Password</label>
           <input
             type="password"
             placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             style={{
               width: "100%",
               padding: "14px 18px",
               borderRadius: "16px",
-              border: `1px solid ${passwordFocused ? "#d4af37" : (theme === "dark" ? "#374151" : "#e5e7eb")}`,
+              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
               background: theme === "dark" ? "#1f2937" : "#ffffff",
               color: theme === "dark" ? "#fefefe" : "#1f2937",
               fontSize: "15px",
-              transition: "all 0.2s",
               outline: "none",
-              boxShadow: passwordFocused ? "0 0 0 3px rgba(212,175,55,0.1)" : "none",
               boxSizing: "border-box",
             }}
-            onFocus={() => setPasswordFocused(true)}
-            onBlur={() => setPasswordFocused(false)}
           />
         </div>
 
-        {/* Sign In Button */}
+        <p style={{
+          fontSize: "10px",
+          color: theme === "dark" ? "#6b7280" : "#9ca3af",
+          textAlign: "center",
+          marginBottom: "8px",
+        }}>
+          💡 Demo: Click "⚡ Demo Fill" (Email: 123@g.com, Password: 6969)
+        </p>
+
         <button
-  onClick={() => setScreen("app")}  // or "app" for SignIn/SignUp
-  style={{
-    width: "100%",
-    maxWidth: "320px",
-    background: "transparent",
-    border: "2px solid rgb(212, 175, 55)",
-    padding: "16px",
-    fontSize: "16px",
-    fontWeight: "700",
-    borderRadius: "60px",
-    color: theme === "dark" ? "#d4af37" : "#b8860b",
-    cursor: "pointer",
-    transition: "transform 0.2s ease",
-    marginTop: "8px",
-    backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
-    backgroundSize: "200% 100%",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "0% 50%",
-    animation: "sweepingBorderGlow 10s linear infinite",
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = "scale(1.02)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = "scale(1)";
-  }}
->
-  Sign In →
-</button>
+          onClick={handleSignIn}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "2px solid rgb(212, 175, 55)",
+            padding: "16px",
+            fontSize: "16px",
+            fontWeight: "700",
+            borderRadius: "60px",
+            color: theme === "dark" ? "#d4af37" : "#b8860b",
+            cursor: "pointer",
+            transition: "transform 0.2s ease",
+            marginTop: "8px",
+            backgroundImage: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(212,175,55,0.8), rgba(212,175,55,0.4), transparent)",
+            backgroundSize: "200% 100%",
+            backgroundRepeat: "no-repeat",
+            animation: "sweepingBorderGlow 10s linear infinite",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          Sign In →
+        </button>
 
         <p style={{
           textAlign: "center",

@@ -22,6 +22,13 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   const [foundersEnabled, setFoundersEnabled] = useState(false);
   const [cvBuilderEnabled, setCvBuilderEnabled] = useState(false);
   const [adsRemoved, setAdsRemoved] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [pinSuccess, setPinSuccess] = useState("");
+  const [showShareToast, setShowShareToast] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const darkColors = {
@@ -84,6 +91,12 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     localStorage.removeItem("shavy_founders_enabled");
     localStorage.removeItem("shavy_cvbuilder_enabled");
     localStorage.removeItem("shavy_ads_removed");
+    sessionStorage.removeItem("shavy_vault_unlocked");
+    localStorage.removeItem("shavy_vault_pin");
+    localStorage.removeItem("shavy_vault_data");
+    localStorage.removeItem("shavy_extracted_phone");
+    localStorage.removeItem("shavy_extracted_address");
+    sessionStorage.removeItem("shavy_vault_unlocked");
     setProfilePhoto(null);
     setFoundersEnabled(false);
     setCvBuilderEnabled(false);
@@ -111,6 +124,57 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     a.click();
     URL.revokeObjectURL(url);
     window.dispatchEvent(new CustomEvent("showToast", { detail: "Profile exported!" }));
+  };
+
+  const handleShareProfile = () => {
+    const skills = JSON.parse(localStorage.getItem("shavy_skills") || "[]");
+    const skillsText = skills.slice(0, 5).join(", ");
+    const shareText = `Check out my Shavy profile!\n\nSkills: ${skillsText || "Exploring new opportunities"}\n\nJoin me on Shavy - the privacy-first career platform.`;
+    
+    navigator.clipboard.writeText(shareText).then(() => {
+      setShowShareToast(true);
+      setTimeout(() => setShowShareToast(false), 2000);
+      window.dispatchEvent(new CustomEvent("showToast", { detail: "Profile link copied!" }));
+    }).catch(() => {
+      window.dispatchEvent(new CustomEvent("showToast", { detail: "Failed to copy" }));
+    });
+  };
+
+  const handleChangePin = () => {
+    setPinError("");
+    setPinSuccess("");
+    
+    const storedPin = localStorage.getItem("shavy_vault_pin");
+    if (!storedPin) {
+      setPinError("No PIN set up yet. Go to Vault to create one first.");
+      return;
+    }
+    
+    if (oldPin !== storedPin) {
+      setPinError("Current PIN is incorrect");
+      return;
+    }
+    
+    if (newPin.length !== 4 || !/^\d+$/.test(newPin)) {
+      setPinError("New PIN must be 4 digits");
+      return;
+    }
+    
+    if (newPin !== confirmPin) {
+      setPinError("New PINs don't match");
+      return;
+    }
+    
+    localStorage.setItem("shavy_vault_pin", newPin);
+    setPinSuccess("PIN changed successfully!");
+    setTimeout(() => {
+      setShowPinModal(false);
+      setOldPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setPinSuccess("");
+      setPinError("");
+    }, 1500);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,6 +230,31 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
         }}
       />
     </div>
+  );
+
+  const PinInput = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
+    <input
+      type="password"
+      inputMode="numeric"
+      pattern="\d*"
+      maxLength={4}
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+      placeholder={placeholder}
+      style={{
+        width: "100%",
+        padding: "12px",
+        backgroundColor: c.secondaryBg,
+        border: `1px solid ${c.border}`,
+        borderRadius: "12px",
+        color: c.text,
+        fontSize: "16px",
+        textAlign: "center",
+        letterSpacing: "8px",
+        fontFamily: "monospace",
+        outline: "none",
+      }}
+    />
   );
 
   const faqItems = [
@@ -247,9 +336,31 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
         <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
           Guest User
         </h3>
-        <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px" }}>
+        <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "12px" }}>
           member since 2026
         </p>
+        
+        {/* Share Profile Button */}
+        <button
+          onClick={handleShareProfile}
+          style={{
+            background: "rgba(212, 175, 55, 0.1)",
+            border: "1px solid #d4af37",
+            padding: "8px 20px",
+            borderRadius: "40px",
+            fontSize: "13px",
+            fontWeight: "500",
+            color: "#d4af37",
+            cursor: "pointer",
+            marginBottom: "12px",
+            marginRight: "8px",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+        >
+          📤 Share Profile
+        </button>
         
         <button
           onClick={handleThemeToggle}
@@ -263,7 +374,6 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
             fontWeight: "500",
             color: "#d4af37",
             cursor: isToggling ? "wait" : "pointer",
-            marginTop: 0,
             transition: "all 0.2s ease",
             transform: isHovered ? "scale(1.02)" : "scale(1)",
             opacity: isToggling ? 0.7 : 1,
@@ -442,6 +552,11 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
               <span style={labelStyle}>Export Data</span>
               <span style={valueStyle}>JSON</span>
             </div>
+            <div onClick={() => setShowPinModal(true)} style={menuItemStyle}>
+              <span style={iconStyle}>🔑</span>
+              <span style={labelStyle}>Change Vault PIN</span>
+              <span style={valueStyle}>→</span>
+            </div>
             {!showDeleteConfirm ? (
               <div onClick={() => setShowDeleteConfirm(true)} style={{ ...menuItemStyle, borderBottom: "none" }}>
                 <span style={iconStyle}>🗑️</span>
@@ -571,6 +686,207 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
           </div>
         )}
       </div>
+
+      {/* PIN Change Modal */}
+{showPinModal && (
+  <>
+    <div onClick={() => {
+      setShowPinModal(false);
+      setOldPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setPinError("");
+      setPinSuccess("");
+    }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
+    <div style={{ 
+      position: "fixed", 
+      top: "50%", 
+      left: "50%", 
+      transform: "translate(-50%, -50%)", 
+      width: "340px", 
+      maxWidth: "calc(100% - 32px)",
+      backgroundColor: c.cardBg, 
+      borderRadius: "24px", 
+      padding: "28px 24px", 
+      zIndex: 101, 
+      border: `1px solid ${c.border}`,
+      boxShadow: "0 20px 35px -10px rgba(0,0,0,0.4)",
+    }}>
+      <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: c.text, textAlign: "center" }}>
+        🔐 Change Vault PIN
+      </h3>
+      
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Current PIN */}
+        <div>
+          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Current PIN</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={4}
+            value={oldPin}
+            onChange={(e) => setOldPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            placeholder="••••"
+            autoFocus
+            style={{
+              width: "300px",
+              padding: "14px",
+              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+              border: `1px solid ${c.border}`,
+              borderRadius: "14px",
+              color: c.text,
+              fontSize: "20px",
+              textAlign: "center",
+              letterSpacing: "12px",
+              fontFamily: "monospace",
+              fontWeight: "600",
+              outline: "none",
+              transition: "border 0.2s ease",
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+          />
+        </div>
+
+        {/* New PIN */}
+        <div>
+          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>New PIN (4 digits)</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={4}
+            value={newPin}
+            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            placeholder="••••"
+            style={{
+              width: "300px",
+              padding: "14px",
+              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+              border: `1px solid ${c.border}`,
+              borderRadius: "14px",
+              color: c.text,
+              fontSize: "20px",
+              textAlign: "center",
+              letterSpacing: "12px",
+              fontFamily: "monospace",
+              fontWeight: "600",
+              outline: "none",
+              transition: "border 0.2s ease",
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+          />
+        </div>
+
+        {/* Confirm PIN */}
+        <div>
+          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Confirm New PIN</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={4}
+            value={confirmPin}
+            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            placeholder="••••"
+            style={{
+              width: "300px",
+              padding: "14px",
+              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+              border: `1px solid ${c.border}`,
+              borderRadius: "14px",
+              color: c.text,
+              fontSize: "20px",
+              textAlign: "center",
+              letterSpacing: "12px",
+              fontFamily: "monospace",
+              fontWeight: "600",
+              outline: "none",
+              transition: "border 0.2s ease",
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+          />
+        </div>
+        
+        {pinError && (
+          <div style={{ 
+            fontSize: "12px", 
+            color: "#ef4444", 
+            textAlign: "center",
+            padding: "8px",
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            borderRadius: "10px",
+          }}>
+            ⚠️ {pinError}
+          </div>
+        )}
+        {pinSuccess && (
+          <div style={{ 
+            fontSize: "12px", 
+            color: "#22c55e", 
+            textAlign: "center",
+            padding: "8px",
+            backgroundColor: "rgba(34, 197, 94, 0.1)",
+            borderRadius: "10px",
+          }}>
+            ✓ {pinSuccess}
+          </div>
+        )}
+        
+        <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+          <button
+            onClick={handleChangePin}
+            style={{
+              flex: 1,
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "12px",
+              borderRadius: "40px",
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              transition: "transform 0.2s ease, opacity 0.2s ease",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            Change PIN
+          </button>
+          <button
+            onClick={() => {
+              setShowPinModal(false);
+              setOldPin("");
+              setNewPin("");
+              setConfirmPin("");
+              setPinError("");
+              setPinSuccess("");
+            }}
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: `1px solid ${c.border}`,
+              padding: "12px",
+              borderRadius: "40px",
+              fontSize: "14px",
+              fontWeight: "500",
+              color: c.textMuted,
+              cursor: "pointer",
+              transition: "background 0.2s ease",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </>
+)}
 
       {/* Privacy Modal */}
       {showPrivacyModal && (

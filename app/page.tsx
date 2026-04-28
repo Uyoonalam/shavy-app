@@ -28,6 +28,12 @@ export default function Page() {
   const [showCourses, setShowCourses] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{ type: "course" | "founders" | "cvbuilder" | "ads"; title: string; amount: number } | null>(null);
+  const [transitionKey, setTransitionKey] = useState(0);
+
+  // Trigger animation when screen/tab changes
+  useEffect(() => {
+    setTransitionKey(prev => prev + 1);
+  }, [screen, tab]);
 
   useEffect(() => {
     const hasSeenPrivacy = localStorage.getItem("shavy_privacy_seen");
@@ -53,13 +59,12 @@ export default function Page() {
   };
 
   const handlePaymentSuccess = () => {
-  setShowPayment(false);
-  setPaymentDetails(null);
-  // Go back to the You tab (no page reload)
-  setTab("you");
-  setScreen("app");
-  window.dispatchEvent(new CustomEvent("showToast", { detail: "✅ Purchase completed!" }));
-};
+    setShowPayment(false);
+    setPaymentDetails(null);
+    setTab("you");
+    setScreen("app");
+    window.dispatchEvent(new CustomEvent("showToast", { detail: "✅ Purchase completed!" }));
+  };
 
   useEffect(() => {
     document.body.classList.remove("light-theme", "dark-theme");
@@ -99,6 +104,18 @@ export default function Page() {
     return () => window.removeEventListener("navigateToCourses", handleNavigateToCourses);
   }, []);
 
+  useEffect(() => {
+    const handleForceLogout = () => {
+      setScreen("signin");
+      setShowPayment(false);
+      setShowCourses(false);
+      sessionStorage.removeItem("shavy_vault_unlocked");
+      window.dispatchEvent(new CustomEvent("showToast", { detail: "Session expired. Please sign in again." }));
+    };
+    window.addEventListener("forceLogout", handleForceLogout);
+    return () => window.removeEventListener("forceLogout", handleForceLogout);
+  }, []);
+
   const darkColors = {
     bg: "#15161c",
     border: "#2a2b33",
@@ -119,12 +136,12 @@ export default function Page() {
 
   const currentColors = theme === "dark" ? darkColors : lightColors;
 
-  // ========== SCREEN RENDERING (in correct order) ==========
+  // ========== SCREEN RENDERING ==========
 
-  // 1. Splash screen
   if (screen === "splash") {
     return (
       <div
+        key={`splash-${transitionKey}`}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -136,6 +153,7 @@ export default function Page() {
           backgroundColor: wipeComplete ? currentColors.bg : "#1F2937",
           transition: "background-color 0.8s ease",
           color: "transparent",
+          animation: "fadeInScale 0.3s ease-out",
         }}
       >
         <div
@@ -155,32 +173,46 @@ export default function Page() {
     );
   }
 
-  // 2. Get Started
   if (screen === "getstarted") {
-    return <GetStartedUI setScreen={setScreen} theme={theme} setTheme={setTheme} />;
+    return (
+      <div key={`getstarted-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+        <GetStartedUI setScreen={setScreen} theme={theme} setTheme={setTheme} />
+      </div>
+    );
   }
 
-  // 3. Sign In
   if (screen === "signin") {
-    return <SignInUI setScreen={setScreen} theme={theme} />;
+    return (
+      <div key={`signin-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+        <SignInUI setScreen={setScreen} theme={theme} />
+      </div>
+    );
   }
 
-  // 4. Sign Up
   if (screen === "signup") {
-    return <SignUpUI setScreen={setScreen} theme={theme} />;
+    return (
+      <div key={`signup-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+        <SignUpUI setScreen={setScreen} theme={theme} />
+      </div>
+    );
   }
 
-  // 5. Payment screen (before courses, so it takes priority)
   if (showPayment) {
-    return <PaymentUI theme={theme} paymentDetails={paymentDetails} onBack={() => setShowPayment(false)} onSuccess={handlePaymentSuccess} />;
+    return (
+      <div key={`payment-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+        <PaymentUI theme={theme} paymentDetails={paymentDetails} onBack={() => setShowPayment(false)} onSuccess={handlePaymentSuccess} />
+      </div>
+    );
   }
 
-  // 6. Courses screen (with onPayment)
   if (showCourses) {
-    return <CoursesUI theme={theme} onBack={() => setShowCourses(false)} onPayment={handlePayment} />;
+    return (
+      <div key={`courses-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+        <CoursesUI theme={theme} onBack={() => setShowCourses(false)} onPayment={handlePayment} />
+      </div>
+    );
   }
 
-  // 7. Main App
   return (
     <div style={{ 
       display: "flex", 
@@ -191,10 +223,15 @@ export default function Page() {
     }}>
       <TopBar theme={theme} onMenuClick={() => setIsSidebarOpen(true)} />
       
+      
       <div 
-        key={tab}
-        className="fade-in"
-        style={{ flex: 1, padding: "20px 16px", overflowY: "auto" }}
+        key={`app-${tab}-${transitionKey}`}
+        style={{ 
+          flex: 1, 
+          padding: "20px 16px", 
+          overflowY: "auto",
+          animation: "fadeInScale 0.25s ease-out",
+        }}
       >
         {tab === "home" && <HomeUI theme={theme} />}
         {tab === "audit" && <AuditUI theme={theme} />}
@@ -265,7 +302,21 @@ export default function Page() {
         })}
       </div>
 
+      
       <Sidebar theme={theme} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
+      <style>{`
+        @keyframes fadeInScale {
+          0% {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
