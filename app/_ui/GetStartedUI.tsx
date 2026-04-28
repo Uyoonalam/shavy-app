@@ -234,7 +234,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
 
       {/* CTA Button */}
       <button
-        onClick={() => setScreen("signin")}
+        onClick={() => setScreen("signup")}
         style={{
           width: "100%",
           maxWidth: "320px",
