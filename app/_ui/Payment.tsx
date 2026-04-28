@@ -219,7 +219,7 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
           borderRadius: "40px",
           fontSize: "13px",
           fontWeight: "500",
-          zIndex: 200,
+          zIndex: 1000,
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           border: `1px solid ${theme === "dark" ? "#3a3a3a" : "#e5e7eb"}`,
         }}>
@@ -315,7 +315,7 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
           </div>
         </div>
 
-        <button type="submit" disabled={isProcessing} style={{ width: "100%", background: isProcessing ? "rgba(212, 175, 55, 0.5)" : "linear-gradient(135deg, #d4af37, #b8860b)", backdropFilter: "blur(10px)", border: "none", padding: "16px", borderRadius: "40px", fontSize: "16px", fontWeight: "600", color: "#111827", cursor: isProcessing ? "wait" : "pointer", opacity: isProcessing ? 0.7 : 1, transition: "all 0.2s ease", marginTop: "8px", boxShadow: isProcessing ? "none" : "0 4px 12px rgba(212, 175, 55, 0.3)" }}
+        <button type="submit" disabled={isProcessing} style={{ width: "100%", background: isProcessing ? "rgba(212, 175, 55, 0.5)" : "linear-gradient(135deg, #d4af37, #b8860b)", backdropFilter: "none", border: "none", padding: "16px", borderRadius: "40px", fontSize: "16px", fontWeight: "600", color: "#111827", cursor: isProcessing ? "wait" : "pointer", opacity: isProcessing ? 0.7 : 1, transition: "all 0.2s ease", marginTop: "8px", boxShadow: isProcessing ? "none" : "0 4px 12px rgba(212, 175, 55, 0.3)" }}
           onMouseEnter={(e) => { if (!isProcessing) { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(212, 175, 55, 0.4)"; } }}
           onMouseLeave={(e) => { if (!isProcessing) { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(212, 175, 55, 0.3)"; } }}
         >{isProcessing ? "Processing..." : `Pay $${paymentDetails.amount}`}</button>

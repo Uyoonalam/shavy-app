@@ -9,6 +9,9 @@ export default function SignUpUI({ setScreen, theme }: any) {
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -16,56 +19,58 @@ export default function SignUpUI({ setScreen, theme }: any) {
   };
 
   const handleSignUp = () => {
-    // Validate all fields are filled
-    if (!fullName.trim()) {
-      showToast("⚠️ Please enter your full name");
-      return;
-    }
-    if (!email.trim()) {
-      showToast("⚠️ Please enter your email");
-      return;
-    }
-    if (!email.includes("@") || !email.includes(".")) {
-      showToast("⚠️ Please enter a valid email address");
-      return;
-    }
-    if (!password) {
-      showToast("⚠️ Please enter a password");
-      return;
-    }
-    if (password.length < 4) {
-      showToast("⚠️ Password must be at least 4 characters");
-      return;
-    }
+  // Validate all fields are filled
+  if (!fullName.trim()) {
+    showToast("⚠️ Please enter your full name");
+    return;
+  }
+  if (!email.trim()) {
+    showToast("⚠️ Please enter your email");
+    return;
+  }
+  if (!email.includes("@") || !email.includes(".")) {
+    showToast("⚠️ Please enter a valid email address");
+    return;
+  }
+  if (!password) {
+    showToast("⚠️ Please enter a password");
+    return;
+  }
+  if (password.length < 4) {
+    showToast("⚠️ Password must be at least 4 characters");
+    return;
+  }
 
-    // Validate PIN (optional but must match if provided)
-    if (pin || confirmPin) {
-      if (pin !== confirmPin) {
-        showToast("⚠️ PINs do not match");
-        return;
-      }
-      if (pin.length < 4) {
-        showToast("⚠️ PIN must be at least 4 digits");
-        return;
-      }
-      localStorage.setItem("shavy_vault_pin", pin);
-    }
+  // Validate PIN - MANDATORY
+  if (!pin || !confirmPin) {
+    showToast("⚠️ Please set a 4-digit Vault PIN");
+    return;
+  }
+  if (pin !== confirmPin) {
+    showToast("⚠️ PINs do not match");
+    return;
+  }
+  if (pin.length !== 4) {
+    showToast("⚠️ PIN must be exactly 4 digits");
+    return;
+  }
+  localStorage.setItem("shavy_vault_pin", pin);
 
-    // Save user info
-    localStorage.setItem("shavy_user_name", fullName);
-    localStorage.setItem("shavy_user_email", email);
-    localStorage.setItem("shavy_user_password", password);
-    
-    showToast("✅ Account created successfully!");
-    setTimeout(() => setScreen("app"), 1000);
-  };
+  // Save user info
+  localStorage.setItem("shavy_user_name", fullName);
+  localStorage.setItem("shavy_user_email", email);
+  localStorage.setItem("shavy_user_password", password);
+  
+  showToast("✅ Account created successfully!");
+  setTimeout(() => setScreen("app"), 1000);
+};
 
   const fillDemoCredentials = () => {
-    setFullName("Admin User");
-    setEmail("123@g.com");
-    setPassword("6969");
-    setPin("1010");
-    setConfirmPin("1010");
+    setFullName("Demo User");
+    setEmail("demo@shavy.com");
+    setPassword("demo123");
+    setPin("1111");
+    setConfirmPin("1111");
     showToast("✅ Demo credentials loaded!");
   };
 
@@ -80,7 +85,7 @@ export default function SignUpUI({ setScreen, theme }: any) {
         padding: "40px 24px",
         position: "relative",
         background: theme === "dark" 
-          ? "linear-gradient(145deg, #1a1f2e 0%, #0f1118 100%)"
+          ? "linear-gradient(145deg, #1a1918 0%, #29241d 100%)"
           : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
       }}
     >
@@ -166,7 +171,7 @@ export default function SignUpUI({ setScreen, theme }: any) {
             letterSpacing: "-1px",
             background: theme === "dark"
               ? "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)"
-              : "linear-gradient(135deg, #1f2937 0%, #b8860b 100%)",
+              : "linear-gradient(135deg, #1F1C18 0%, #b8860b 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -202,8 +207,8 @@ export default function SignUpUI({ setScreen, theme }: any) {
             padding: "14px 18px",
             borderRadius: "16px",
             border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-            background: theme === "dark" ? "#1f2937" : "#ffffff",
-            color: theme === "dark" ? "#fefefe" : "#1f2937",
+            background: theme === "dark" ? "#1F170F" : "#ffffff",
+            color: theme === "dark" ? "#fefefe" : "#1F170F",
             fontSize: "15px",
             marginBottom: "16px",
             outline: "none",
@@ -229,8 +234,8 @@ export default function SignUpUI({ setScreen, theme }: any) {
             padding: "14px 18px",
             borderRadius: "16px",
             border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-            background: theme === "dark" ? "#1f2937" : "#ffffff",
-            color: theme === "dark" ? "#fefefe" : "#1f2937",
+            background: theme === "dark" ? "#1F170F" : "#ffffff",
+            color: theme === "dark" ? "#fefefe" : "#1F170F",
             fontSize: "15px",
             marginBottom: "16px",
             outline: "none",
@@ -246,81 +251,134 @@ export default function SignUpUI({ setScreen, theme }: any) {
             e.target.style.boxShadow = "none";
           }}
         />
-        <input
-          placeholder="Password *"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "14px 18px",
-            borderRadius: "16px",
-            border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-            background: theme === "dark" ? "#1f2937" : "#ffffff",
-            color: theme === "dark" ? "#fefefe" : "#1f2937",
-            fontSize: "15px",
-            marginBottom: "16px",
-            outline: "none",
-            transition: "all 0.2s",
-            boxSizing: "border-box",
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = "#d4af37";
-            e.target.style.boxShadow = "0 0 0 3px rgba(212,175,55,0.1)";
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = theme === "dark" ? "#374151" : "#e5e7eb";
-            e.target.style.boxShadow = "none";
-          }}
-        />
+        
+        {/* Password with Show/Hide */}
+        <div style={{ position: "relative", marginBottom: "16px" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password *"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 18px",
+              paddingRight: "45px",
+              borderRadius: "16px",
+              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+              background: theme === "dark" ? "#1F170F" : "#ffffff",
+              color: theme === "dark" ? "#fefefe" : "#1F170F",
+              fontSize: "15px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#d4af37";
+              e.target.style.boxShadow = "0 0 0 3px rgba(212,175,55,0.1)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = theme === "dark" ? "#374151" : "#e5e7eb";
+              e.target.style.boxShadow = "none";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "16px",
+              color: theme === "dark" ? "#94a3b8" : "#64748b",
+            }}
+          >
+            {showPassword ? "👁️" : "🔒"}
+          </button>
+        </div>
 
         {/* Vault PIN Setup */}
         <div style={{ marginBottom: "16px" }}>
-          <input
-            type="password"
-            placeholder="Set Vault PIN (4-6 digits, optional)"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            style={{
-              width: "100%",
-              padding: "14px 18px",
-              borderRadius: "16px",
-              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-              background: theme === "dark" ? "#1f2937" : "#ffffff",
-              color: theme === "dark" ? "#fefefe" : "#1f2937",
-              fontSize: "15px",
-              marginBottom: "12px",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Vault PIN"
-            value={confirmPin}
-            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            style={{
-              width: "100%",
-              padding: "14px 18px",
-              borderRadius: "16px",
-              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-              background: theme === "dark" ? "#1f2937" : "#ffffff",
-              color: theme === "dark" ? "#fefefe" : "#1f2937",
-              fontSize: "15px",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
+          {/* Set PIN */}
+          <div style={{ position: "relative", marginBottom: "12px" }}>
+            <input
+              type={showPin ? "text" : "password"}
+              placeholder="Set Your 4 Digit Vault PIN *"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              style={{
+                width: "100%",
+                padding: "14px 18px",
+                paddingRight: "45px",
+                borderRadius: "16px",
+                border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+                background: theme === "dark" ? "#1F170F" : "#ffffff",
+                color: theme === "dark" ? "#fefefe" : "#1F170F",
+                fontSize: "15px",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPin(!showPin)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "16px",
+                color: theme === "dark" ? "#94a3b8" : "#64748b",
+              }}
+            >
+              {showPin ? "👁️" : "🔒"}
+            </button>
+          </div>
 
-        <p style={{
-          fontSize: "10px",
-          color: theme === "dark" ? "#6b7280" : "#9ca3af",
-          textAlign: "center",
-          marginBottom: "8px",
-        }}>
-          💡 Quick demo: Click "⚡ Demo Fill" (Email: 123@g.com, Password: 6969, PIN: 1010)
-        </p>
+          {/* Confirm PIN */}
+          <div style={{ position: "relative" }}>
+            <input
+              type={showConfirmPin ? "text" : "password"}
+              placeholder="Confirm Vault PIN *"
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              style={{
+                width: "100%",
+                padding: "14px 18px",
+                paddingRight: "45px",
+                borderRadius: "16px",
+                border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+                background: theme === "dark" ? "#1F170F" : "#ffffff",
+                color: theme === "dark" ? "#fefefe" : "#1F170F",
+                fontSize: "15px",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPin(!showConfirmPin)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "16px",
+                color: theme === "dark" ? "#94a3b8" : "#64748b",
+              }}
+            >
+              {showConfirmPin ? "👁️" : "🔒"}
+            </button>
+          </div>
+        </div>
 
         <button
           onClick={handleSignUp}

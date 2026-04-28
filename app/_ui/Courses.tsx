@@ -54,8 +54,7 @@ export default function CoursesUI({ theme, onBack, onPayment }: CoursesUIProps) 
     text: "#e2e8f0",
     textMuted: "#94a3b8",
     hoverBg: "#3a3a3a",
-    expandedBg: "#1e1f26",
-    instructorBg: "#1e1f26",
+    instructorBg: "#322c25",
   };
 
   const lightColors = {
@@ -65,7 +64,6 @@ export default function CoursesUI({ theme, onBack, onPayment }: CoursesUIProps) 
     text: "#0f172a",
     textMuted: "#64748b",
     hoverBg: "#f1f5f9",
-    expandedBg: "#fafafa",
     instructorBg: "#f1f5f9",
   };
 
@@ -130,7 +128,7 @@ export default function CoursesUI({ theme, onBack, onPayment }: CoursesUIProps) 
           borderRadius: "40px",
           fontSize: "13px",
           fontWeight: "500",
-          zIndex: 200,
+          zIndex: 1000,
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           border: `1px solid ${c.border}`,
           whiteSpace: "nowrap",

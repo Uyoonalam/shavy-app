@@ -15,7 +15,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
   useEffect(() => {
     const interval = setInterval(() => {
       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -32,8 +32,8 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
         position: "relative",
         overflow: "auto",
         background: theme === "dark" 
-          ? "linear-gradient(145deg, #1a1f2e 0%, #0f1118 100%)"
-          : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
+          ? "linear-gradient(145deg, #1a1918 0%, #29241d 100%)"
+          : "linear-gradient(145deg, #fefcf5 0%, #e3d8bb 100%)",
       }}
     >
       {/* Animated background blobs */}
@@ -68,7 +68,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           top: "20px",
           right: "20px",
           background: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-          backdropFilter: "blur(10px)",
+          backdropFilter: "none",
           border: `1px solid ${theme === "dark" ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.2)"}`,
           borderRadius: "40px",
           padding: "8px 16px",
@@ -124,7 +124,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
-          backgroundColor: theme === "dark" ? "#1f2937" : "#ffffff",
+          backgroundColor: theme === "dark" ? "#1F1C18" : "#ffffff",
           boxShadow: theme === "dark"
             ? "0 0 50px rgba(212,175,55,0.3), inset 0 0 25px rgba(0,0,0,0.2)"
             : "0 30px 45px -12px rgba(0,0,0,0.2), inset 0 1px 0 0 rgba(255,255,255,0.8)",
@@ -153,7 +153,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           letterSpacing: "-1.5px",
           background: theme === "dark"
             ? "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)"
-            : "linear-gradient(135deg, #1f2937 0%, #b8860b 100%)",
+            : "linear-gradient(135deg, #1F1C18 0%, #b8860b 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -173,7 +173,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           lineHeight: "1.4",
           background: theme === "dark"
             ? "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)"
-            : "linear-gradient(135deg, #1f2937 0%, #b8860b 100%)",
+            : "linear-gradient(135deg, #1F1C18 0%, #b8860b 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -193,7 +193,7 @@ export default function GetStartedUI({ setScreen, theme, setTheme }: any) {
           backgroundColor: theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
           borderRadius: "20px",
           padding: "20px",
-          backdropFilter: "blur(10px)",
+          backdropFilter: "none",
           transition: "all 0.3s ease",
         }}>
           <p style={{ 

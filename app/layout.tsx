@@ -23,11 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           width: "100%",
           maxWidth: "380px",
           height: "700px",
-          backgroundColor: "rgb(2, 28, 22)",
+          backgroundColor: "1F1C18",
           overflow: "auto",
-          border: "8px solid #1a1a1a",
+          border: "8px solid #151416",
           borderRadius: "44px",
-          boxShadow: "0 0 0 2px rgba(212, 175, 55, 0.2), 0 25px 40px -12px black",
+          boxShadow: "0 0 0 2px rgb(0, 0, 0), 1px 25px 40px -12px black",
           position: "relative",
         }}>
           {children}

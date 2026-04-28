@@ -5,8 +5,7 @@ import { useState, useEffect } from "react";
 interface HomeUIProps {
   theme: "dark" | "light";
 }
-
-// Daily tips array
+// Daily tips array - 25 different tips
 const tips = [
   { emoji: "💡", text: "Update your skills monthly to stay relevant in your industry" },
   { emoji: "🎯", text: "Companies with 80%+ trust scores are 3x more likely to have positive culture" },
@@ -18,6 +17,21 @@ const tips = [
   { emoji: "🎓", text: "Free courses can help you land your next promotion" },
   { emoji: "🔒", text: "Your vault is encrypted with your PIN — keep it safe!" },
   { emoji: "📈", text: "Track company trust scores over time in the Audit tab" },
+  { emoji: "👥", text: "Invite 5 friends to unlock CV Builder for FREE!" },
+  { emoji: "💰", text: "The Salary Estimator shows your earning potential based on skills" },
+  { emoji: "📝", text: "Click any field in Vault to edit your extracted information" },
+  { emoji: "🔍", text: "Research companies before applying — knowledge is power" },
+  { emoji: "🎯", text: "Tailor your resume for each job using your extracted skills" },
+  { emoji: "🤝", text: "Connect with founders and mentors in the Founders Ecosystem" },
+  { emoji: "📚", text: "Complete free courses to boost your career prospects" },
+  { emoji: "🏆", text: "Gold-verified companies have the highest employee satisfaction" },
+  { emoji: "⚡", text: "Quick tip: Use the search bar to find specific companies" },
+  { emoji: "📱", text: "Shavy works on any device — your data syncs locally" },
+  { emoji: "🔔", text: "Enable job alerts to never miss an opportunity" },
+  { emoji: "📊", text: "Track your skill growth over time with proficiency levels" },
+  { emoji: "🎨", text: "Customize your profile with a photo in Settings" },
+  { emoji: "🔗", text: "Share your profile with recruiters using the Share button" },
+  { emoji: "💎", text: "Premium features unlock your full career potential" },
 ];
 
 export default function HomeUI({ theme }: HomeUIProps) {
@@ -623,7 +637,7 @@ export default function HomeUI({ theme }: HomeUIProps) {
                   right: 0,
                   bottom: 0,
                   backgroundColor: "rgba(0,0,0,0.5)",
-                  backdropFilter: "blur(4px)",
+                  backdropFilter: "none",
                   zIndex: 100,
                 }}
               />
@@ -728,7 +742,7 @@ export default function HomeUI({ theme }: HomeUIProps) {
                   right: 0,
                   bottom: 0,
                   backgroundColor: "rgba(0,0,0,0.5)",
-                  backdropFilter: "blur(4px)",
+                  backdropFilter: "none",
                   zIndex: 100,
                 }}
               />
@@ -888,6 +902,40 @@ export default function HomeUI({ theme }: HomeUIProps) {
               <h3 style={{ fontSize: "16px", fontWeight: "600", color: currentColors.text }}>📝 Professional Summary</h3>
             </div>
             {showDescription && <p style={{ fontSize: "14px", color: currentColors.textMuted, marginTop: "16px", lineHeight: "1.5" }}>{description}</p>}
+          </div>
+
+          {/* Salary Estimator */}
+          <div
+            className="simple-card-hover"
+            style={{
+              backgroundColor: currentColors.cardBg,
+              borderRadius: "20px",
+              padding: "20px",
+              border: `1px solid ${currentColors.border}`,
+            }}
+          >
+            <h3 style={{ fontSize: "16px", fontWeight: "600", color: currentColors.text, marginBottom: "12px" }}>
+              💰 Salary Estimator
+            </h3>
+            <div style={{
+              textAlign: "center",
+              padding: "16px",
+              backgroundColor: theme === "dark" ? "#26211d" : "#f1f5f9",
+              borderRadius: "12px",
+            }}>
+              <div style={{ fontSize: "11px", color: currentColors.textMuted }}>Estimated Salary Range</div>
+              <div style={{ fontSize: "24px", fontWeight: "700", color: "#d4af37" }}>
+                ${experienceLevel === "Entry Level (0-2 years)" ? "65,000" :
+                  experienceLevel === "Mid Level (3-5 years)" ? "85,000" :
+                  experienceLevel === "Senior Level (6-9 years)" ? "110,000" : "140,000"}
+                -${experienceLevel === "Entry Level (0-2 years)" ? "85,000" :
+                  experienceLevel === "Mid Level (3-5 years)" ? "110,000" :
+                  experienceLevel === "Senior Level (6-9 years)" ? "145,000" : "185,000"}
+              </div>
+              <div style={{ fontSize: "10px", color: currentColors.textMuted, marginTop: "8px" }}>
+                Based on your skills and experience level
+              </div>
+            </div>
           </div>
 
           {/* Courses CTA */}

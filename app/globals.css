@@ -26,7 +26,7 @@ body.light-theme, body.dark-theme {
 input {
   background: white;
   margin-top: 10px;
-  color: #111827;
+  color: #1F170F;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 12px;
@@ -77,13 +77,14 @@ html, body {
   }
 }
 
+
 /* Utility classes */
 .text-shavy-gold {
   color: rgb(212, 175, 55);
 }
 
 .bg-shavy-void {
-  background-color: rgb(2, 28, 22);
+  background-color: #1F170F;
 }
 
 .bg-shavy-paper {
@@ -91,16 +92,11 @@ html, body {
 }
 
 .text-shavy-void {
-  color: rgb(2, 28, 22);
+  color: #1F170F;
 }
 
 .font-script {
   font-family: var(--font-allura), cursive;
-}
-
-/* Splash screen - force dark green before transition */
-.splash-dark {
-  background-color: rgb(2, 28, 22) !important;
 }
 
 /* Make inputs more prominent */
@@ -246,13 +242,13 @@ input:focus {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #1f2937, #111827);
+  background: linear-gradient(135deg, #1a1918 0%, #29241d 100%);
   color: #d4af37;
   padding: 12px 24px;
   border-radius: 40px;
   font-size: 14px;
   font-weight: 500;
-  zIndex: 200;
+  z-Index: 200;
   animation: slideDown 0.3s ease-out;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   border-left: 3px solid #d4af37;
@@ -395,4 +391,7 @@ body.light-theme .simple-card-hover:hover {
     opacity: 1;
     transform: scale(1);
   }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

@@ -13,6 +13,7 @@ import TopBar from "./_ui/TopBar";
 import Sidebar from "./_ui/SideBar";
 import PaymentUI from "./_ui/Payment";
 import CoursesUI from "./_ui/Courses";
+import OnboardingTour from "./_ui/OnboardingTour";
 
 type Screen = "splash" | "getstarted" | "signin" | "signup" | "app" | "courses" | "payment";
 type Tab = "home" | "audit" | "vault" | "you";
@@ -22,13 +23,40 @@ export default function Page() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [tab, setTab] = useState<Tab>("home");
   const [wipeComplete, setWipeComplete] = useState(false);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showCourses, setShowCourses] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{ type: "course" | "founders" | "cvbuilder" | "ads"; title: string; amount: number } | null>(null);
   const [transitionKey, setTransitionKey] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [startSplash, setStartSplash] = useState(false);
+  
+  // Store random positions in state to avoid hydration mismatch
+  const [particles, setParticles] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
+
+  // Delay splash screen start by 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => setStartSplash(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
+    // Generate particles only on client side
+    const newParticles = Array.from({ length: 80 }).map(() => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: Math.random() * 5 + 1,
+      duration: Math.random() * 2 + 1.5,
+      delay: Math.random() * 1.5,
+    }));
+    setParticles(newParticles);
+  }, []);
 
   // Trigger animation when screen/tab changes
   useEffect(() => {
@@ -70,21 +98,22 @@ export default function Page() {
     document.body.classList.remove("light-theme", "dark-theme");
     document.body.classList.add(`${theme}-theme`);
     
-    const outsideColor = theme === "light" ? "#1a1a2e" : "#e2e8f0";
+    // Outside color opposite of inside theme
+    const outsideColor = theme === "light" ? "#0a0a0a" : "#f0f0f0";
     document.body.style.setProperty("background-color", outsideColor, "important");
     document.body.style.transition = "background-color 0.3s ease";
   }, [theme]);
 
   useEffect(() => {
-    if (screen === "splash") {
-      const timer = setTimeout(() => setWipeComplete(true), 1800);
-      const nextScreenTimer = setTimeout(() => setScreen("getstarted"), 2000);
+    if (screen === "splash" && startSplash) {
+      const timer = setTimeout(() => setWipeComplete(true), 3500);
+      const nextScreenTimer = setTimeout(() => setScreen("getstarted"), 3800);
       return () => {
         clearTimeout(timer);
         clearTimeout(nextScreenTimer);
       };
     }
-  }, [screen]);
+  }, [screen, startSplash]);
 
   useEffect(() => {
     const handleSwitchTab = (e: CustomEvent) => {
@@ -116,8 +145,35 @@ export default function Page() {
     return () => window.removeEventListener("forceLogout", handleForceLogout);
   }, []);
 
+  // Onboarding - Show ONCE when user first logs in
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem("shavy_onboarding_completed");
+    if (!hasSeenOnboarding && screen === "app") {
+      setTimeout(() => setShowOnboarding(true), 1500);
+    }
+  }, [screen]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem("shavy_onboarding_completed", "true");
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    if (scrollTop === 0 && e.touches[0].clientY - touchStart > 60 && !isRefreshing) {
+      setIsRefreshing(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+  };
+
   const darkColors = {
-    bg: "#15161c",
+    bg: "#1F1C18",
     border: "#2a2b33",
     textMuted: "#94a3b8",
     inputBg: "#2a2a2a",
@@ -136,12 +192,18 @@ export default function Page() {
 
   const currentColors = theme === "dark" ? darkColors : lightColors;
 
+  // Don't render splash until startSplash is true
+  if (!startSplash) {
+    return <div style={{ backgroundColor: "#1F170F", height: "100%" }} />;
+  }
+
   // ========== SCREEN RENDERING ==========
 
   if (screen === "splash") {
     return (
       <div
         key={`splash-${transitionKey}`}
+        suppressHydrationWarning
         style={{
           display: "flex",
           flexDirection: "column",
@@ -150,25 +212,167 @@ export default function Page() {
           minHeight: "100%",
           position: "relative",
           overflow: "hidden",
-          backgroundColor: wipeComplete ? currentColors.bg : "#1F2937",
+          backgroundColor: wipeComplete ? currentColors.bg : "#1F170F",
           transition: "background-color 0.8s ease",
-          color: "transparent",
-          animation: "fadeInScale 0.3s ease-out",
         }}
       >
+        {/* Animated particles background - only render on client */}
+        {isClient && particles.length > 0 && (
+          <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+            {particles.map((particle, i) => (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: `${particle.left}%`,
+                  top: `${particle.top}%`,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                  background: "#d4af37",
+                  borderRadius: "50%",
+                  opacity: 0,
+                  animation: `floatParticle ${particle.duration}s ease-in-out infinite`,
+                  animationDelay: `${particle.delay}s`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Animated Logo with Shimmer */}
+        <div
+          style={{
+            position: "relative",
+            marginBottom: "24px",
+            animation: "logoReveal 1s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards",
+            transform: "scale(0.9)",
+            opacity: 0.5,
+          }}
+        >
+          <div style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: "50%",
+          }}>
+            <div style={{
+              width: "120px",
+              height: "120px",
+              borderRadius: "50%",
+              border: `3px solid rgba(212, 175, 55, 0.6)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              backgroundColor: "#1F1C18",
+            }}>
+              <img 
+                src="/ShavyNew.png" 
+                alt="Shavy Logo" 
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+            {/* Shimmer effect - loops twice during splash */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "-100%",
+                width: "100%",
+                height: "100%",
+                background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)",
+                animation: "shimmer 1.8s ease-in-out infinite",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Brand Name */}
+        <h1 
+          style={{
+            fontSize: "42px",
+            fontWeight: "800",
+            letterSpacing: "-1.5px",
+            background: "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            marginBottom: "8px",
+            animation: "fadeInText 1s ease-out 0.2s both",
+          }}
+        >
+          Shavy
+        </h1>
+
+        {/* Tagline */}
+        <p 
+          style={{
+            fontSize: "14px",
+            color: "#94a3b8",
+            letterSpacing: "1px",
+            animation: "fadeInText 1s ease-out 0.5s both",
+          }}
+        >
+          Illuminate your path
+        </p>
+
+        {/* Progress line at bottom */}
         <div
           style={{
             position: "absolute",
-            top: 0,
-            bottom: 0,
-            width: "3px",
-            backgroundColor: "#b0d7b2",
-            pointerEvents: "none",
-            zIndex: 30,
-            left: "-10%",
-            animation: "lineMoveLeftToRight 1.8s ease-in-out forwards",
+            bottom: "40px",
+            left: "20%",
+            right: "20%",
+            height: "2px",
+            backgroundColor: "rgba(212,175,55,0.15)",
+            borderRadius: "2px",
+            overflow: "hidden",
           }}
-        />
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              background: "linear-gradient(90deg, #d4af37, #b8860b)",
+              borderRadius: "2px",
+              transform: "translateX(-100%)",
+              animation: "loadingProgress 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+            }}
+          />
+        </div>
+
+        <style>{`
+          @keyframes logoReveal {
+            0% { opacity: 0.3; transform: scale(0.85); }
+            40% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+          
+          @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+          }
+          
+          @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes loadingProgress {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(-20%); }
+            100% { transform: translateX(0); }
+          }
+          
+          @keyframes floatParticle {
+            0% { opacity: 0; transform: translateY(0) scale(0); }
+            15% { opacity: 0.7; transform: scale(1); }
+            85% { opacity: 0.4; }
+            100% { opacity: 0; transform: translateY(-80px) scale(0); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -223,16 +427,32 @@ export default function Page() {
     }}>
       <TopBar theme={theme} onMenuClick={() => setIsSidebarOpen(true)} />
       
-      
       <div 
         key={`app-${tab}-${transitionKey}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         style={{ 
           flex: 1, 
           padding: "20px 16px", 
           overflowY: "auto",
           animation: "fadeInScale 0.25s ease-out",
+          position: "relative",
         }}
       >
+        {isRefreshing && (
+          <div style={{ textAlign: "center", padding: "10px", position: "sticky", top: 0, zIndex: 10 }}>
+            <div style={{ 
+              display: "inline-block", 
+              width: "24px", 
+              height: "24px", 
+              border: "2px solid #d4af37", 
+              borderTopColor: "transparent", 
+              borderRadius: "50%", 
+              animation: "spin 0.6s linear infinite" 
+            }} />
+          </div>
+        )}
+        
         {tab === "home" && <HomeUI theme={theme} />}
         {tab === "audit" && <AuditUI theme={theme} />}
         {tab === "vault" && <VaultUI theme={theme} />}
@@ -248,8 +468,8 @@ export default function Page() {
         backgroundColor: theme === "light" 
           ? "rgba(255, 255, 255, 0.7)"
           : "rgba(31, 28, 24, 0.7)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
         paddingBottom: "8px",
         position: "sticky",
         bottom: 0,
@@ -302,9 +522,20 @@ export default function Page() {
         })}
       </div>
 
-      
-      <Sidebar theme={theme} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
+      <Sidebar
+        theme={theme}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+      />
+
+      {showOnboarding && (
+        <OnboardingTour
+          theme={theme}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+
       <style>{`
         @keyframes fadeInScale {
           0% {
@@ -315,6 +546,9 @@ export default function Page() {
             opacity: 1;
             transform: scale(1);
           }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

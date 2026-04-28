@@ -9,8 +9,6 @@ interface YouUIProps {
 }
 
 export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showFaqModal, setShowFaqModal] = useState(false);
@@ -28,15 +26,13 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   const [confirmPin, setConfirmPin] = useState("");
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
-  const [showShareToast, setShowShareToast] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   const darkColors = {
     cardBg: "#2A2622",
     border: "#3a3a3a",
     text: "#e2e8f0",
     textMuted: "#94a3b8",
-    secondaryBg: "#1e1f26",
+    secondaryBg: "#342b24",
   };
 
   const lightColors = {
@@ -65,21 +61,12 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     const ads = localStorage.getItem("shavy_ads_removed");
     if (ads === "true") {
       setAdsRemoved(true);
-      // Dispatch event to hide ads in HomeUI
       window.dispatchEvent(new CustomEvent("adsRemoved"));
     }
   }, []);
 
   const handleSectionToggle = (section: string) => {
     setOpenSection(openSection === section ? null : section);
-  };
-
-  const handleThemeToggle = () => {
-    setIsToggling(true);
-    setTimeout(() => {
-      setTheme(theme === "dark" ? "light" : "dark");
-      setTimeout(() => setIsToggling(false), 300);
-    }, 150);
   };
 
   const handleDeleteAllData = () => {
@@ -97,6 +84,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     localStorage.removeItem("shavy_extracted_phone");
     localStorage.removeItem("shavy_extracted_address");
     sessionStorage.removeItem("shavy_vault_unlocked");
+    localStorage.removeItem("shavy_onboarding_completed");
     setProfilePhoto(null);
     setFoundersEnabled(false);
     setCvBuilderEnabled(false);
@@ -124,20 +112,6 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     a.click();
     URL.revokeObjectURL(url);
     window.dispatchEvent(new CustomEvent("showToast", { detail: "Profile exported!" }));
-  };
-
-  const handleShareProfile = () => {
-    const skills = JSON.parse(localStorage.getItem("shavy_skills") || "[]");
-    const skillsText = skills.slice(0, 5).join(", ");
-    const shareText = `Check out my Shavy profile!\n\nSkills: ${skillsText || "Exploring new opportunities"}\n\nJoin me on Shavy - the privacy-first career platform.`;
-    
-    navigator.clipboard.writeText(shareText).then(() => {
-      setShowShareToast(true);
-      setTimeout(() => setShowShareToast(false), 2000);
-      window.dispatchEvent(new CustomEvent("showToast", { detail: "Profile link copied!" }));
-    }).catch(() => {
-      window.dispatchEvent(new CustomEvent("showToast", { detail: "Failed to copy" }));
-    });
   };
 
   const handleChangePin = () => {
@@ -196,11 +170,11 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   };
 
   const handleCvBuilderPurchase = () => {
-    onPurchase("cvbuilder", 19);
+    onPurchase("cvbuilder", 14.99);
   };
 
   const handleAdsPurchase = () => {
-    onPurchase("ads", 4.99);
+    onPurchase("ads", 2.99);
   };
 
   const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
@@ -232,31 +206,6 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     </div>
   );
 
-  const PinInput = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
-    <input
-      type="password"
-      inputMode="numeric"
-      pattern="\d*"
-      maxLength={4}
-      value={value}
-      onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
-      placeholder={placeholder}
-      style={{
-        width: "100%",
-        padding: "12px",
-        backgroundColor: c.secondaryBg,
-        border: `1px solid ${c.border}`,
-        borderRadius: "12px",
-        color: c.text,
-        fontSize: "16px",
-        textAlign: "center",
-        letterSpacing: "8px",
-        fontFamily: "monospace",
-        outline: "none",
-      }}
-    />
-  );
-
   const faqItems = [
     { q: "How does Shavy protect my data?", a: "All your data stays on your device. Shavy never sees, sells, or shares your personal information." },
     { q: "Is Shavy really free?", a: "Yes! Basic features are completely free. We only charge companies for job postings." },
@@ -281,253 +230,6 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      
-      {/* Profile Card with Uploadable Photo */}
-      <div style={{
-        backgroundColor: c.cardBg,
-        borderRadius: "20px",
-        padding: "24px",
-        border: `1px solid ${c.border}`,
-        textAlign: "center",
-      }}>
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          style={{
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            background: profilePhoto ? "transparent" : "linear-gradient(135deg, #d4af37, #b8860b)",
-            margin: "0 auto 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "36px",
-            boxShadow: "0 4px 12px rgba(212, 175, 55, 0.3)",
-            cursor: "pointer",
-            overflow: "hidden",
-            transition: "transform 0.2s ease",
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-        >
-          {profilePhoto ? (
-            <img
-              src={profilePhoto}
-              alt="Profile"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
-            />
-          ) : (
-            "👤"
-          )}
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoUpload}
-          style={{ display: "none" }}
-        />
-        
-        <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
-          Guest User
-        </h3>
-        <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "12px" }}>
-          member since 2026
-        </p>
-        
-        {/* Share Profile Button */}
-        <button
-          onClick={handleShareProfile}
-          style={{
-            background: "rgba(212, 175, 55, 0.1)",
-            border: "1px solid #d4af37",
-            padding: "8px 20px",
-            borderRadius: "40px",
-            fontSize: "13px",
-            fontWeight: "500",
-            color: "#d4af37",
-            cursor: "pointer",
-            marginBottom: "12px",
-            marginRight: "8px",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-        >
-          📤 Share Profile
-        </button>
-        
-        <button
-          onClick={handleThemeToggle}
-          disabled={isToggling}
-          style={{
-            background: "rgba(212, 175, 55, 0.1)",
-            border: "1px solid #d4af37",
-            padding: "8px 20px",
-            borderRadius: "40px",
-            fontSize: "13px",
-            fontWeight: "500",
-            color: "#d4af37",
-            cursor: isToggling ? "wait" : "pointer",
-            transition: "all 0.2s ease",
-            transform: isHovered ? "scale(1.02)" : "scale(1)",
-            opacity: isToggling ? 0.7 : 1,
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {isToggling ? "⟳" : `${theme === "dark" ? "☀️" : "🌙"} ${theme === "dark" ? "Light" : "Dark"}`}
-        </button>
-      </div>
-
-      {/* Founders Ecosystem Purchase Card - only show if NOT enabled */}
-      {!foundersEnabled && (
-        <div
-          className="simple-card-hover"
-          style={{
-            backgroundColor: c.cardBg,
-            borderRadius: "16px",
-            padding: "16px",
-            border: `1px solid ${c.border}`,
-            textAlign: "center",
-            cursor: "pointer",
-            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-3px)";
-            e.currentTarget.style.borderColor = "#d4af37";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.borderColor = c.border;
-          }}
-        >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🚀</div>
-          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
-            Founders Ecosystem
-          </h3>
-          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
-            Connect with founders, mentors, and exclusive opportunities
-          </p>
-          <button
-            onClick={handleFoundersPurchase}
-            style={{
-              background: "linear-gradient(135deg, #d4af37, #b8860b)",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "30px",
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "#111827",
-              cursor: "pointer",
-              marginTop: 0,
-            }}
-          >
-            Upgrade — $9.99/mo
-          </button>
-        </div>
-      )}
-
-      {/* CV Builder Purchase Card - only show if NOT enabled */}
-      {!cvBuilderEnabled && (
-        <div
-          className="simple-card-hover"
-          style={{
-            backgroundColor: c.cardBg,
-            borderRadius: "16px",
-            padding: "16px",
-            border: `1px solid ${c.border}`,
-            textAlign: "center",
-            cursor: "pointer",
-            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-3px)";
-            e.currentTarget.style.borderColor = "#d4af37";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.borderColor = c.border;
-          }}
-        >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>📄</div>
-          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
-            CV Builder
-          </h3>
-          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
-            Build professional CVs with AI-powered templates • Export as PDF
-          </p>
-          <button
-            onClick={handleCvBuilderPurchase}
-            style={{
-              background: "linear-gradient(135deg, #d4af37, #b8860b)",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "30px",
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "#111827",
-              cursor: "pointer",
-              marginTop: 0,
-            }}
-          >
-            Upgrade — $19 one-time
-          </button>
-        </div>
-      )}
-
-      {/* Remove Ads Purchase Card - only show if NOT enabled */}
-      {!adsRemoved && (
-        <div
-          className="simple-card-hover"
-          style={{
-            backgroundColor: c.cardBg,
-            borderRadius: "16px",
-            padding: "16px",
-            border: `1px solid ${c.border}`,
-            textAlign: "center",
-            cursor: "pointer",
-            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-3px)";
-            e.currentTarget.style.borderColor = "#d4af37";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.borderColor = c.border;
-          }}
-        >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🛡️</div>
-          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
-            Remove Ads
-          </h3>
-          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
-            Enjoy an ad-free experience across the app
-          </p>
-          <button
-            onClick={handleAdsPurchase}
-            style={{
-              background: "linear-gradient(135deg, #d4af37, #b8860b)",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "30px",
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "#111827",
-              cursor: "pointer",
-              marginTop: 0,
-            }}
-          >
-            Remove Ads — $4.99/mo
-          </button>
-        </div>
-      )}
 
       {/* Security Section */}
       <div style={{
@@ -687,211 +389,358 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
         )}
       </div>
 
-      {/* PIN Change Modal */}
-{showPinModal && (
-  <>
-    <div onClick={() => {
-      setShowPinModal(false);
-      setOldPin("");
-      setNewPin("");
-      setConfirmPin("");
-      setPinError("");
-      setPinSuccess("");
-    }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
-    <div style={{ 
-      position: "fixed", 
-      top: "50%", 
-      left: "50%", 
-      transform: "translate(-50%, -50%)", 
-      width: "340px", 
-      maxWidth: "calc(100% - 32px)",
-      backgroundColor: c.cardBg, 
-      borderRadius: "24px", 
-      padding: "28px 24px", 
-      zIndex: 101, 
-      border: `1px solid ${c.border}`,
-      boxShadow: "0 20px 35px -10px rgba(0,0,0,0.4)",
-    }}>
-      <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: c.text, textAlign: "center" }}>
-        🔐 Change Vault PIN
-      </h3>
-      
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {/* Current PIN */}
-        <div>
-          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Current PIN</label>
-          <input
-            type="password"
-            inputMode="numeric"
-            pattern="\d*"
-            maxLength={4}
-            value={oldPin}
-            onChange={(e) => setOldPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="••••"
-            autoFocus
-            style={{
-              width: "300px",
-              padding: "14px",
-              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
-              border: `1px solid ${c.border}`,
-              borderRadius: "14px",
-              color: c.text,
-              fontSize: "20px",
-              textAlign: "center",
-              letterSpacing: "12px",
-              fontFamily: "monospace",
-              fontWeight: "600",
-              outline: "none",
-              transition: "border 0.2s ease",
-            }}
-            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
-            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
-          />
-        </div>
-
-        {/* New PIN */}
-        <div>
-          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>New PIN (4 digits)</label>
-          <input
-            type="password"
-            inputMode="numeric"
-            pattern="\d*"
-            maxLength={4}
-            value={newPin}
-            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="••••"
-            style={{
-              width: "300px",
-              padding: "14px",
-              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
-              border: `1px solid ${c.border}`,
-              borderRadius: "14px",
-              color: c.text,
-              fontSize: "20px",
-              textAlign: "center",
-              letterSpacing: "12px",
-              fontFamily: "monospace",
-              fontWeight: "600",
-              outline: "none",
-              transition: "border 0.2s ease",
-            }}
-            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
-            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
-          />
-        </div>
-
-        {/* Confirm PIN */}
-        <div>
-          <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Confirm New PIN</label>
-          <input
-            type="password"
-            inputMode="numeric"
-            pattern="\d*"
-            maxLength={4}
-            value={confirmPin}
-            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="••••"
-            style={{
-              width: "300px",
-              padding: "14px",
-              backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
-              border: `1px solid ${c.border}`,
-              borderRadius: "14px",
-              color: c.text,
-              fontSize: "20px",
-              textAlign: "center",
-              letterSpacing: "12px",
-              fontFamily: "monospace",
-              fontWeight: "600",
-              outline: "none",
-              transition: "border 0.2s ease",
-            }}
-            onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
-            onBlur={(e) => e.currentTarget.style.borderColor = c.border}
-          />
-        </div>
-        
-        {pinError && (
-          <div style={{ 
-            fontSize: "12px", 
-            color: "#ef4444", 
+      {/* Founders Ecosystem Purchase Card - only show if NOT enabled */}
+      {!foundersEnabled && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
             textAlign: "center",
-            padding: "8px",
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            borderRadius: "10px",
-          }}>
-            ⚠️ {pinError}
-          </div>
-        )}
-        {pinSuccess && (
-          <div style={{ 
-            fontSize: "12px", 
-            color: "#22c55e", 
-            textAlign: "center",
-            padding: "8px",
-            backgroundColor: "rgba(34, 197, 94, 0.1)",
-            borderRadius: "10px",
-          }}>
-            ✓ {pinSuccess}
-          </div>
-        )}
-        
-        <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🚀</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            Founders Ecosystem
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Connect with founders, mentors, and exclusive opportunities
+          </p>
           <button
-            onClick={handleChangePin}
+            onClick={handleFoundersPurchase}
             style={{
-              flex: 1,
               background: "linear-gradient(135deg, #d4af37, #b8860b)",
               border: "none",
-              padding: "12px",
-              borderRadius: "40px",
-              fontSize: "14px",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
               fontWeight: "600",
               color: "#111827",
               cursor: "pointer",
-              transition: "transform 0.2s ease, opacity 0.2s ease",
+              marginTop: 0,
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
           >
-            Change PIN
-          </button>
-          <button
-            onClick={() => {
-              setShowPinModal(false);
-              setOldPin("");
-              setNewPin("");
-              setConfirmPin("");
-              setPinError("");
-              setPinSuccess("");
-            }}
-            style={{
-              flex: 1,
-              background: "transparent",
-              border: `1px solid ${c.border}`,
-              padding: "12px",
-              borderRadius: "40px",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: c.textMuted,
-              cursor: "pointer",
-              transition: "background 0.2s ease",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-          >
-            Cancel
+            Upgrade — $9.99/mo
           </button>
         </div>
-      </div>
-    </div>
-  </>
-)}
+      )}
+
+      {/* CV Builder Purchase Card - only show if NOT enabled */}
+      {!cvBuilderEnabled && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>📄</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            CV Builder
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Build professional CVs with AI-powered templates • Export as PDF
+          </p>
+          <button
+            onClick={handleCvBuilderPurchase}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              marginTop: 0,
+            }}
+          >
+            Upgrade — $14.99 one-time
+          </button>
+        </div>
+      )}
+
+      {/* Remove Ads Purchase Card - only show if NOT enabled */}
+      {!adsRemoved && (
+        <div
+          className="simple-card-hover"
+          style={{
+            backgroundColor: c.cardBg,
+            borderRadius: "16px",
+            padding: "16px",
+            border: `1px solid ${c.border}`,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-3px)";
+            e.currentTarget.style.borderColor = "#d4af37";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.borderColor = c.border;
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🛡️</div>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: c.text, marginBottom: "4px" }}>
+            Remove Ads
+          </h3>
+          <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "12px" }}>
+            Enjoy an ad-free experience across the app
+          </p>
+          <button
+            onClick={handleAdsPurchase}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+              marginTop: 0,
+            }}
+          >
+            Remove Ads — $2.99 one-time
+          </button>
+        </div>
+      )}
+
+      {/* PIN Change Modal */}
+      {showPinModal && (
+        <>
+          <div onClick={() => {
+            setShowPinModal(false);
+            setOldPin("");
+            setNewPin("");
+            setConfirmPin("");
+            setPinError("");
+            setPinSuccess("");
+          }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(none)", zIndex: 100 }} />
+          <div style={{ 
+            position: "fixed", 
+            top: "50%", 
+            left: "50%", 
+            transform: "translate(-50%, -50%)", 
+            width: "340px", 
+            maxWidth: "calc(100% - 32px)",
+            backgroundColor: c.cardBg, 
+            borderRadius: "24px", 
+            padding: "28px 24px", 
+            zIndex: 101, 
+            border: `1px solid ${c.border}`,
+            boxShadow: "0 20px 35px -10px rgba(0,0,0,0.4)",
+          }}>
+            <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: c.text, textAlign: "center" }}>
+              🔐 Change Vault PIN
+            </h3>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {/* Current PIN */}
+              <div>
+                <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Current PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={4}
+                  value={oldPin}
+                  onChange={(e) => setOldPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="••••"
+                  autoFocus
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                    border: `1px solid ${c.border}`,
+                    borderRadius: "14px",
+                    color: c.text,
+                    fontSize: "20px",
+                    textAlign: "center",
+                    letterSpacing: "4px",
+                    fontFamily: "monospace",
+                    fontWeight: "600",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "border 0.2s ease",
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+                />
+              </div>
+
+              {/* New PIN */}
+              <div>
+                <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>New PIN (4 digits)</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="••••"
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                    border: `1px solid ${c.border}`,
+                    borderRadius: "14px",
+                    color: c.text,
+                    fontSize: "20px",
+                    textAlign: "center",
+                    letterSpacing: "4px",
+                    fontFamily: "monospace",
+                    fontWeight: "600",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "border 0.2s ease",
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+                />
+              </div>
+
+              {/* Confirm PIN */}
+              <div>
+                <label style={{ fontSize: "12px", color: c.textMuted, marginBottom: "6px", display: "block" }}>Confirm New PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={4}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="••••"
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    backgroundColor: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                    border: `1px solid ${c.border}`,
+                    borderRadius: "14px",
+                    color: c.text,
+                    fontSize: "20px",
+                    textAlign: "center",
+                    letterSpacing: "4px",
+                    fontFamily: "monospace",
+                    fontWeight: "600",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "border 0.2s ease",
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#d4af37"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = c.border}
+                />
+              </div>
+              
+              {pinError && (
+                <div style={{ 
+                  fontSize: "12px", 
+                  color: "#ef4444", 
+                  textAlign: "center",
+                  padding: "8px",
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  borderRadius: "10px",
+                }}>
+                  ⚠️ {pinError}
+                </div>
+              )}
+              {pinSuccess && (
+                <div style={{ 
+                  fontSize: "12px", 
+                  color: "#22c55e", 
+                  textAlign: "center",
+                  padding: "8px",
+                  backgroundColor: "rgba(34, 197, 94, 0.1)",
+                  borderRadius: "10px",
+                }}>
+                  ✓ {pinSuccess}
+                </div>
+              )}
+              
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                <button
+                  onClick={handleChangePin}
+                  style={{
+                    flex: 1,
+                    background: "linear-gradient(135deg, #d4af37, #b8860b)",
+                    border: "none",
+                    padding: "12px",
+                    borderRadius: "40px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#111827",
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease, opacity 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                >
+                  Change PIN
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPinModal(false);
+                    setOldPin("");
+                    setNewPin("");
+                    setConfirmPin("");
+                    setPinError("");
+                    setPinSuccess("");
+                  }}
+                  style={{
+                    flex: 1,
+                    background: "transparent",
+                    border: `1px solid ${c.border}`,
+                    padding: "12px",
+                    borderRadius: "40px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: c.textMuted,
+                    cursor: "pointer",
+                    transition: "background 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Privacy Modal */}
       {showPrivacyModal && (
         <>
-          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
+          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(none)", zIndex: 100 }} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
             <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: c.text }}>Privacy</h3>
             <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px", lineHeight: "1.5" }}>Privacy isn't optional. Your data lives only on your device, end-to-end encrypted. Shavy never collects, sells, or shares anything. Your information belongs to you — always.</p>
@@ -903,7 +752,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
       {/* FAQ Modal */}
       {showFaqModal && (
         <>
-          <div onClick={() => setShowFaqModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 100 }} />
+          <div onClick={() => setShowFaqModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", maxHeight: "70vh", overflowY: "auto", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
               <h3 style={{ fontSize: "16px", fontWeight: "600", color: c.text }}>FAQ</h3>

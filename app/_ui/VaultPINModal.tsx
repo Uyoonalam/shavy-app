@@ -20,7 +20,7 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
   const colors = {
     dark: {
       bg: "#1e293b",
-      cardBg: "#2a2a2a",
+      cardBg: "#2A2622",
       border: "#3a3a3a",
       text: "#e2e8f0",
       textMuted: "#94a3b8",
@@ -40,7 +40,7 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
 
   const handleSubmit = () => {
     if (attempts <= 0) {
-      setError("Too many failed attempts. Redirecting to sign in...");
+      setError("Too many failed attempts. Redirecting...");
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent("forceLogout"));
         onClose();
@@ -57,7 +57,7 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
       if (newAttempts > 0) {
         setError(`Wrong PIN. ${newAttempts} attempt${newAttempts !== 1 ? 's' : ''} remaining.`);
       } else {
-        setError(`Wrong PIN. No attempts left. Redirecting to sign in...`);
+        setError(`Wrong PIN. No attempts left. Redirecting...`);
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent("forceLogout"));
           onClose();
@@ -90,7 +90,8 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
           right: 0,
           bottom: 0,
           backgroundColor: "rgba(0,0,0,0.7)",
-          backdropFilter: "blur(8px)",
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
           zIndex: 200,
           display: "flex",
           alignItems: "center",
@@ -196,11 +197,16 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
         right: 0,
         bottom: 0,
         backgroundColor: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(none)",
         zIndex: 200,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
     >
       <div
@@ -221,15 +227,18 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
         </h3>
         <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px" }}>
           {attempts > 0 
-            ? `Your vault is locked. Enter your PIN (${attempts} attempt${attempts !== 1 ? 's' : ''} remaining).`
+            ? `Your vault is locked. Enter your 4-digit PIN (${attempts} attempt${attempts !== 1 ? 's' : ''} remaining).`
             : "No attempts remaining. Please reset your PIN."}
         </p>
         
         <input
           type="password"
-          placeholder="Enter 4-6 digit PIN"
+          inputMode="numeric"
+          pattern="\d*"
+          maxLength={4}
+          placeholder="••••"
           value={pin}
-          onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           autoFocus
           disabled={attempts <= 0}
@@ -240,9 +249,10 @@ export default function VaultPINModal({ theme, onSuccess, onClose }: VaultPINMod
             border: `1px solid ${error ? c.error : c.border}`,
             backgroundColor: c.bg,
             color: c.text,
-            fontSize: "16px",
+            fontSize: "20px",
             textAlign: "center",
-            letterSpacing: "4px",
+            letterSpacing: "8px",
+            fontFamily: "monospace",
             marginBottom: "16px",
             boxSizing: "border-box",
             opacity: attempts <= 0 ? 0.5 : 1,

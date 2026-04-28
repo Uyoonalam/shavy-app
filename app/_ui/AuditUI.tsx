@@ -239,9 +239,7 @@ const badCompaniesDetails = {
 const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark" | "light"; companyName: string }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const maxScore = 100;
-  const minScore = 0;
   const height = 80;
-  const width = 280;
   
   const colors = theme === "dark" 
     ? { bar: "#d4af37", barHover: "#f0c74a", text: "#94a3b8", label: "#62748c" }
@@ -420,7 +418,6 @@ export default function AuditUI({ theme }: AuditUIProps) {
     if (details) {
       setViewingCompany({ ...company, details });
       setTimeout(() => {
-        const scrollContainer = document.querySelector('[style*="overflow-y: auto"]');
         if (scrollContainer) {
           scrollContainer.scrollTop = 0;
         } else {

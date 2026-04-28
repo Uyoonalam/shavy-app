@@ -43,8 +43,8 @@ export default function TopBar({ theme, onMenuClick }: TopBarProps) {
           backgroundColor: theme === "light"
             ? "rgba(255, 255, 255, 0.8)"
             : "rgba(31, 28, 24, 0.9)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
           position: "sticky",
           top: 0,
           zIndex: 40,
@@ -159,7 +159,7 @@ export default function TopBar({ theme, onMenuClick }: TopBarProps) {
               right: 0,
               bottom: 0,
               backgroundColor: "rgba(0,0,0,0.4)",
-              backdropFilter: "blur(4px)",
+              backdropFilter: "none",
               zIndex: 45,
             }}
           />
@@ -171,7 +171,7 @@ export default function TopBar({ theme, onMenuClick }: TopBarProps) {
               transform: "translate(-50%, -50%)",
               width: "280px",
               backgroundColor: theme === "light" ? "#ffffff" : c.cardBg,
-              backdropFilter: "blur(20px)",
+              backdropFilter: "none",
               borderRadius: "20px",
               padding: "20px",
               textAlign: "center",

@@ -6,6 +6,7 @@ export default function SignInUI({ setScreen, theme }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -14,10 +15,10 @@ export default function SignInUI({ setScreen, theme }: any) {
 
   const handleSignIn = () => {
     // Demo credentials check
-    if (email === "123@g.com" && password === "6969") {
+    if (email === "demo@shavy.com" && password === "demo123") {
       localStorage.setItem("shavy_user_email", email);
       localStorage.setItem("shavy_user_password", password);
-      showToast("✅ Welcome back, Admin!");
+      showToast("✅ Welcome back!");
       setTimeout(() => setScreen("app"), 500);
       return;
     }
@@ -40,8 +41,8 @@ export default function SignInUI({ setScreen, theme }: any) {
   };
 
   const fillDemoCredentials = () => {
-    setEmail("123@g.com");
-    setPassword("6969");
+    setEmail("demo@shavy.com");
+    setPassword("demo123");
     showToast("✅ Demo credentials loaded!");
   };
 
@@ -53,10 +54,10 @@ export default function SignInUI({ setScreen, theme }: any) {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100%",
-        padding: "40px 24px",
+        padding: "20px 24px",
         position: "relative",
         background: theme === "dark" 
-          ? "linear-gradient(145deg, #1a1f2e 0%, #0f1118 100%)"
+          ? "linear-gradient(145deg, #1a1918 0%, #29241d 100%)"
           : "linear-gradient(145deg, #fefcf5 0%, #fff9e8 100%)",
       }}
     >
@@ -131,7 +132,7 @@ export default function SignInUI({ setScreen, theme }: any) {
         ← Back
       </div>
 
-      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
         <h1 
           key={`title-${theme}`}
           style={{
@@ -140,11 +141,11 @@ export default function SignInUI({ setScreen, theme }: any) {
             letterSpacing: "-1px",
             background: theme === "dark"
               ? "linear-gradient(135deg, #fefefe 0%, #d4af37 100%)"
-              : "linear-gradient(135deg, #1f2937 0%, #b8860b 100%)",
+              : "linear-gradient(135deg, #1F170F 0%, #b8860b 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            marginBottom: "8px",
+            marginBottom: "4px",
           }}
         >
           Welcome Back
@@ -152,7 +153,7 @@ export default function SignInUI({ setScreen, theme }: any) {
         <p 
           key={`subtitle-${theme}`}
           style={{
-            fontSize: "14px",
+            fontSize: "13px",
             background: theme === "dark"
               ? "linear-gradient(135deg, #9ca3af 0%, #d4af37 70%)"
               : "linear-gradient(135deg, #6b7280 0%, #b8860b 70%)",
@@ -166,8 +167,8 @@ export default function SignInUI({ setScreen, theme }: any) {
       </div>
 
       <div style={{ width: "100%", maxWidth: "320px" }}>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "8px" }}>Email</label>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "6px" }}>Email</label>
           <input
             type="email"
             placeholder="you@example.com"
@@ -175,47 +176,59 @@ export default function SignInUI({ setScreen, theme }: any) {
             onChange={(e) => setEmail(e.target.value)}
             style={{
               width: "100%",
-              padding: "14px 18px",
-              borderRadius: "16px",
+              padding: "12px 16px",
+              borderRadius: "14px",
               border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-              background: theme === "dark" ? "#1f2937" : "#ffffff",
-              color: theme === "dark" ? "#fefefe" : "#1f2937",
-              fontSize: "15px",
+              background: theme === "dark" ? "#1F170F" : "#ffffff",
+              color: theme === "dark" ? "#fefefe" : "#1F170F",
+              fontSize: "14px",
               outline: "none",
               boxSizing: "border-box",
             }}
           />
         </div>
 
-        <div style={{ marginBottom: "28px" }}>
-          <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "8px" }}>Password</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "14px 18px",
-              borderRadius: "16px",
-              border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-              background: theme === "dark" ? "#1f2937" : "#ffffff",
-              color: theme === "dark" ? "#fefefe" : "#1f2937",
-              fontSize: "15px",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
+        <div style={{ position: "relative", marginBottom: "20px" }}>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "500", color: theme === "dark" ? "#d1d5db" : "#4b5563", marginBottom: "6px" }}>Password</label>
+          <div style={{ position: "relative" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                paddingRight: "45px",
+                borderRadius: "14px",
+                border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
+                background: theme === "dark" ? "#1F170F" : "#ffffff",
+                color: theme === "dark" ? "#fefefe" : "#1F170F",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "16px",
+                color: theme === "dark" ? "#94a3b8" : "#64748b",
+                padding: "4px",
+              }}
+            >
+              {showPassword ? "👁️" : "🔒"}
+            </button>
+          </div>
         </div>
-
-        <p style={{
-          fontSize: "10px",
-          color: theme === "dark" ? "#6b7280" : "#9ca3af",
-          textAlign: "center",
-          marginBottom: "8px",
-        }}>
-          💡 Demo: Click "⚡ Demo Fill" (Email: 123@g.com, Password: 6969)
-        </p>
 
         <button
           onClick={handleSignIn}
@@ -223,7 +236,7 @@ export default function SignInUI({ setScreen, theme }: any) {
             width: "100%",
             background: "transparent",
             border: "2px solid rgb(212, 175, 55)",
-            padding: "16px",
+            padding: "14px",
             fontSize: "16px",
             fontWeight: "700",
             borderRadius: "60px",
@@ -248,9 +261,9 @@ export default function SignInUI({ setScreen, theme }: any) {
 
         <p style={{
           textAlign: "center",
-          fontSize: "13px",
+          fontSize: "12px",
           color: theme === "dark" ? "#9ca3af" : "#6b7280",
-          marginTop: "24px",
+          marginTop: "20px",
         }}>
           Don't have an account?{" "}
           <span
@@ -273,6 +286,16 @@ export default function SignInUI({ setScreen, theme }: any) {
           >
             Sign up →
           </span>
+        </p>
+        
+        <p style={{
+          fontSize: "9px",
+          color: theme === "dark" ? "#6b7280" : "#9ca3af",
+          textAlign: "center",
+          marginTop: "12px",
+          opacity: 0.7,
+        }}>
+          Demo: demo@shavy.com / demo123
         </p>
       </div>
     </main>
