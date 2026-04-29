@@ -17,6 +17,26 @@ body {
   transition: background-color 0.3s ease;
 }
 
+html {
+  background-color: #1F1C18;
+}
+
+body {
+  background-color: #1F1C18;
+  margin: 0;
+  padding: 0;
+}
+
+/* For light mode */
+body.light-theme {
+  background-color: #f0f0f0 !important;
+}
+
+/* Prevent white flash during navigation */
+#__next {
+  background-color: #1F1C18;
+}
+
 /* These are handled by page.tsx now - do not set background here */
 body.light-theme, body.dark-theme {
   background: transparent !important;
@@ -248,7 +268,7 @@ input:focus {
   border-radius: 40px;
   font-size: 14px;
   font-weight: 500;
-  z-Index: 200;
+  z-index: 200;
   animation: slideDown 0.3s ease-out;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   border-left: 3px solid #d4af37;

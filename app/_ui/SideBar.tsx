@@ -19,6 +19,21 @@ export default function Sidebar({ theme, isOpen, onClose, onThemeToggle }: Sideb
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isToggling, setIsToggling] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    exchanges: false,
+    regulators: false,
+    tax: false,
+    central: false,
+    business: false,
+    labor: false,
+    trade: false,
+    realestate: false,
+    consumer: false,
+    economic: false,
+    crypto: false,
+    legal: false,
+  });
 
   useEffect(() => {
     const name = localStorage.getItem("shavy_user_name") || localStorage.getItem("shavy_extracted_name") || "Guest User";
@@ -29,6 +44,16 @@ export default function Sidebar({ theme, isOpen, onClose, onThemeToggle }: Sideb
     setUserEmail(email);
     if (photo) setProfilePhoto(photo);
   }, []);
+
+  useEffect(() => {
+  const handleStorageChange = () => {
+    const photo = localStorage.getItem("shavy_profile_photo");
+    if (photo) setProfilePhoto(photo);
+  };
+  
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
+}, []);
 
   if (!isOpen) return null;
 
@@ -99,6 +124,111 @@ export default function Sidebar({ theme, isOpen, onClose, onThemeToggle }: Sideb
   const handleCloseInviteModal = () => {
     setShowInviteModal(false);
   };
+
+  const handleThemeToggleWithAnimation = () => {
+    setIsToggling(true);
+    setTimeout(() => {
+      onThemeToggle();
+      setTimeout(() => setIsToggling(false), 300);
+    }, 150);
+  };
+
+  // Accordion toggle - only one section open at a time
+  const toggleSection = (sectionId: string) => {
+    setOpenSections(prev => {
+      // If clicking the already open section, close it
+      if (prev[sectionId]) {
+        return { ...prev, [sectionId]: false };
+      }
+      // Otherwise, open this section and close all others
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        newState[key] = false;
+      });
+      newState[sectionId] = true;
+      return newState;
+    });
+  };
+
+  const sections = [
+    { id: "exchanges", title: " Global Stock Exchanges", icon: "🌍", links: [
+      { flag: "🇺🇸", name: "NYSE", desc: "New York Stock Exchange", url: "https://www.nyse.com" },
+      { flag: "🇬🇧", name: "London Stock Exchange (LSE)", desc: "FTSE 100, UK stocks", url: "https://www.londonstockexchange.com" },
+      { flag: "🇯🇵", name: "Nikkei 225", desc: "Japan stock market index", url: "https://www.nikkei.co.jp/nikkeiindex/en/" },
+      { flag: "🇦🇺", name: "Australian Securities Exchange (ASX)", desc: "Australian stocks", url: "https://www.asx.com.au" },
+      { flag: "🇩🇪", name: "Deutsche Börse", desc: "German stock exchange (DAX)", url: "https://www.deutsche-boerse.com" },
+      { flag: "🇫🇷", name: "Euronext", desc: "European stock exchange", url: "https://www.euronext.com" },
+      { flag: "🇭🇰", name: "Hong Kong Stock Exchange (HKEX)", desc: "Asian markets", url: "https://www.hkex.com.hk" },
+      { flag: "🇮🇳", name: "BSE India", desc: "Bombay Stock Exchange", url: "https://www.bseindia.com" },
+      { flag: "🇨🇳", name: "Shanghai Stock Exchange", desc: "Chinese stocks (SSE)", url: "http://www.sse.com.cn" },
+    ] },
+    { id: "regulators", title: "Global Financial Regulators", icon: "🏦", links: [
+      { flag: "🇺🇸", name: "SEC (USA)", desc: "Securities and Exchange Commission", url: "https://www.sec.gov" },
+      { flag: "🇬🇧", name: "FCA (UK)", desc: "Financial Conduct Authority", url: "https://www.fca.org.uk" },
+      { flag: "🇪🇺", name: "ESMA (EU)", desc: "European Securities and Markets Authority", url: "https://www.esma.europa.eu" },
+      { flag: "🇵🇰", name: "SECP Pakistan", desc: "Securities and Exchange Commission of Pakistan", url: "https://www.secp.gov.pk" },
+      { flag: "🇮🇳", name: "SEBI India", desc: "Securities and Exchange Board of India", url: "https://www.sebi.gov.in" },
+      { flag: "🇦🇪", name: "DFSA (Dubai)", desc: "Dubai Financial Services Authority", url: "https://www.dfsa.ae" },
+    ] },
+    { id: "tax", title: "Global Tax Authorities", icon: "💰", links: [
+      { flag: "🇬🇧", name: "HMRC (UK)", desc: "UK tax rates & regulations", url: "https://www.gov.uk/government/organisations/hm-revenue-customs" },
+      { flag: "🇨🇦", name: "CRA (Canada)", desc: "Canada Revenue Agency", url: "https://www.canada.ca/en/revenue-agency.html" },
+      { flag: "🇦🇺", name: "ATO (Australia)", desc: "Australian Taxation Office", url: "https://www.ato.gov.au" },
+      { flag: "🇵🇰", name: "FBR Pakistan", desc: "Income tax rates, sales tax", url: "https://www.fbr.gov.pk" },
+      { flag: "🇮🇳", name: "Income Tax India", desc: "Indian tax department", url: "https://www.incometaxindia.gov.in" },
+      { flag: "🇸🇬", name: "IRAS (Singapore)", desc: "Inland Revenue Authority", url: "https://www.iras.gov.sg" },
+    ] },
+    { id: "central", title: "Global Central Banks", icon: "🏛️", links: [
+      { flag: "🇺🇸", name: "Federal Reserve (USA)", desc: "US monetary policy, interest rates", url: "https://www.federalreserve.gov" },
+      { flag: "🇪🇺", name: "European Central Bank (ECB)", desc: "Eurozone monetary policy", url: "https://www.ecb.europa.eu" },
+      { flag: "🇬🇧", name: "Bank of England", desc: "UK interest rates", url: "https://www.bankofengland.co.uk" },
+      { flag: "🇯🇵", name: "Bank of Japan", desc: "Japanese monetary policy", url: "https://www.boj.or.jp/en/" },
+      { flag: "🇵🇰", name: "State Bank of Pakistan", desc: "Exchange rates, monetary policy", url: "https://www.sbp.org.pk" },
+      { flag: "🇮🇳", name: "RBI (India)", desc: "Reserve Bank of India", url: "https://www.rbi.org.in" },
+      { flag: "🇨🇳", name: "People's Bank of China", desc: "Chinese monetary policy", url: "http://www.pbc.gov.cn" },
+    ] },
+    { id: "business", title: "Global Business & Company Data", icon: "🏢", links: [
+      { flag: "📊", name: "Bloomberg", desc: "Financial news, market data", url: "https://www.bloomberg.com" },
+      { flag: "📰", name: "Reuters", desc: "Global business news", url: "https://www.reuters.com" },
+      { flag: "📈", name: "Wall Street Journal", desc: "Business & financial news", url: "https://www.wsj.com" },
+      { flag: "📘", name: "Financial Times", desc: "Global economy & markets", url: "https://www.ft.com" },
+      { flag: "🇵🇰", name: "PSX", desc: "Pakistan Stock Exchange", url: "https://www.psx.com.pk" },
+    ] },
+    { id: "trade", title: "International Trade & Tariffs", icon: "🌐", links: [
+      { flag: "🌍", name: "World Trade Organization (WTO)", desc: "Trade policies, tariffs", url: "https://www.wto.org" },
+      { flag: "🇺🇸", name: "ITA (US)", desc: "International Trade Administration", url: "https://www.trade.gov" },
+      { flag: "🇨🇦", name: "Global Affairs Canada", desc: "Canadian trade agreements", url: "https://www.tradecommissioner.gc.ca" },
+      { flag: "🇪🇺", name: "EU Trade", desc: "European Union trade policy", url: "https://ec.europa.eu/trade" },
+    ] },
+    { id: "realestate", title: "Real Estate & Property Data", icon: "🏠", links: [
+      { flag: "🇺🇸", name: "Zillow", desc: "US property values, rent data", url: "https://www.zillow.com" },
+      { flag: "🇬🇧", name: "Rightmove", desc: "UK property market data", url: "https://www.rightmove.co.uk" },
+      { flag: "🇦🇪", name: "Property Finder", desc: "Middle East property", url: "https://www.propertyfinder.ae" },
+    ] },
+    { id: "consumer", title: "Global Consumer Protection", icon: "🛡️", links: [
+      { flag: "✅", name: "Better Business Bureau (BBB)", desc: "Business complaints & ratings", url: "https://www.bbb.org" },
+      { flag: "🇪🇺", name: "EU Consumer Protection", desc: "European consumer rights", url: "https://ec.europa.eu/consumers/odr/main/" },
+      { flag: "🇬🇧", name: "UK Consumer Protection", desc: "UK consumer rights", url: "https://www.gov.uk/consumer-protection" },
+      { flag: "🇵🇰", name: "DRAP Pakistan", desc: "Drug Regulatory Authority", url: "https://www.drap.gov.pk" },
+    ] },
+    { id: "economic", title: "Global Economic Data & Statistics", icon: "📈", links: [
+      { flag: "🌍", name: "World Bank", desc: "Economic indicators", url: "https://www.worldbank.org" },
+      { flag: "📘", name: "OECD", desc: "Economic outlook", url: "https://www.oecd.org" },
+      { flag: "🏦", name: "International Monetary Fund (IMF)", desc: "Global economic outlook", url: "https://www.imf.org" },
+      { flag: "🇺🇸", name: "Federal Reserve Economic Data (FRED)", desc: "US economic data", url: "https://fred.stlouisfed.org" },
+    ] },
+    { id: "crypto", title: "Cryptocurrency & Blockchain Data", icon: "₿", links: [
+      { flag: "₿", name: "CoinGecko", desc: "Cryptocurrency prices, market cap", url: "https://www.coingecko.com" },
+      { flag: "📊", name: "CoinMarketCap", desc: "Crypto market data", url: "https://coinmarketcap.com" },
+      { flag: "🔗", name: "Chainalysis", desc: "Blockchain analytics", url: "https://www.chainalysis.com" },
+    ] },
+    { id: "legal", title: "International Legal Databases", icon: "⚖️", links: [
+      { flag: "⚖️", name: "World Legal Information Institute", desc: "Global legal resources", url: "https://www.worldlii.org" },
+      { flag: "🇺🇸", name: "Cornell LII", desc: "US legal information", url: "https://www.law.cornell.edu" },
+      { flag: "🇬🇧", name: "BAILII", desc: "British and Irish legal info", url: "https://www.bailii.org" },
+    ] },
+  ];
+
 
   return (
     <>
@@ -219,39 +349,57 @@ export default function Sidebar({ theme, isOpen, onClose, onThemeToggle }: Sideb
           )}
         </div>
 
-        {/* Theme Toggle */}
+        {/* Theme Toggle - Slider Switch */}
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${c.border}` }}>
-          <button
-            onClick={onThemeToggle}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "10px 16px",
-              background: c.hoverBg,
-              border: `1px solid ${c.goldAccent}40`,
-              borderRadius: "40px",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = c.goldAccent;
-              e.currentTarget.style.transform = "scale(1.02)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = `${c.goldAccent}40`;
-              e.currentTarget.style.transform = "scale(1)";
-            }}
-          >
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 0",
+          }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "18px" }}>{theme === "dark" ? "☀️" : "🌙"}</span>
+              <span style={{ fontSize: "16px" }}>{theme === "dark" ? "🌙" : "☀️"}</span>
               <span style={{ fontSize: "13px", fontWeight: "500", color: c.text }}>
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                {theme === "dark" ? "Dark Mode" : "Light Mode"}
               </span>
             </div>
-            <span style={{ fontSize: "12px", color: c.textMuted }}>Toggle</span>
-          </button>
+            
+            {/* Slider Toggle */}
+            <button
+              onClick={handleThemeToggleWithAnimation}
+              disabled={isToggling}
+              style={{
+                width: "52px",
+                height: "28px",
+                backgroundColor: theme === "dark" ? "#3a3a3a" : "#e2e8f0",
+                borderRadius: "34px",
+                border: "none",
+                cursor: "pointer",
+                position: "relative",
+                transition: "background-color 0.3s ease",
+                padding: "2px",
+              }}
+            >
+              <div
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  backgroundColor: "#d4af37",
+                  borderRadius: "50%",
+                  position: "absolute",
+                  top: "2px",
+                  left: theme === "dark" ? "26px" : "2px",
+                  transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span style={{ fontSize: "12px" }}>{theme === "dark" ? "🌙" : "☀️"}</span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -411,52 +559,92 @@ export default function Sidebar({ theme, isOpen, onClose, onThemeToggle }: Sideb
         </>
       )}
 
-      {/* Legal Sources Modal */}
+      {/* Legal Sources Modal - Collapsible Sections (Accordion) */}
       {showLegalModal && (
         <>
           <div onClick={() => setShowLegalModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 200 }} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", maxHeight: "70vh", overflowY: "auto", backgroundColor: theme === "dark" ? "#2A2622" : "#ffffff", borderRadius: "20px", padding: "20px", zIndex: 201, border: `1px solid ${c.border}` }}>
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", maxHeight: "380px", overflowY: "auto", backgroundColor: theme === "dark" ? "#2A2622" : "#ffffff", borderRadius: "20px", padding: "20px", zIndex: 201, border: `1px solid ${c.border}` }}>
+            
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text }}>⚖️ Legal Sources</h3>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text }}>⚖️ Legal & Data Sources</h3>
               <button onClick={() => setShowLegalModal(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: c.textMuted }}>✕</button>
             </div>
-            <p style={{ fontSize: "11px", color: c.textMuted, marginBottom: "16px", lineHeight: "1.4" }}>
-              Shavy uses data from these trusted sources:
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <a href="https://www.sec.gov/edgar" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: c.hoverBg, borderRadius: "12px", textDecoration: "none" }}>
-                <span style={{ fontSize: "24px" }}>📄</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: c.text }}>SEC EDGAR</div>
-                  <div style={{ fontSize: "11px", color: c.textMuted }}>Financial filings</div>
-                </div>
-                <span style={{ fontSize: "14px", color: c.textMuted }}>🔗</span>
-              </a>
-              <a href="https://www.glassdoor.com" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: c.hoverBg, borderRadius: "12px", textDecoration: "none" }}>
-                <span style={{ fontSize: "24px" }}>💼</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: c.text }}>Glassdoor</div>
-                  <div style={{ fontSize: "11px", color: c.textMuted }}>Employee reviews</div>
-                </div>
-                <span style={{ fontSize: "14px", color: c.textMuted }}>🔗</span>
-              </a>
-              <a href="https://www.bbb.org" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: c.hoverBg, borderRadius: "12px", textDecoration: "none" }}>
-                <span style={{ fontSize: "24px" }}>✅</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: c.text }}>Better Business Bureau</div>
-                  <div style={{ fontSize: "11px", color: c.textMuted }}>Complaints & ratings</div>
-                </div>
-                <span style={{ fontSize: "14px", color: c.textMuted }}>🔗</span>
-              </a>
-              <a href="https://www.bls.gov" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: c.hoverBg, borderRadius: "12px", textDecoration: "none" }}>
-                <span style={{ fontSize: "24px" }}>📊</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: c.text }}>Bureau of Labor Statistics</div>
-                  <div style={{ fontSize: "11px", color: c.textMuted }}>Salary data</div>
-                </div>
-                <span style={{ fontSize: "14px", color: c.textMuted }}>🔗</span>
-              </a>
+            
+            <div style={{ fontSize: "11px", color: c.textMuted, marginBottom: "16px", lineHeight: "1.4" }}>
+              Shavy references data from these trusted sources:
             </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {sections.map((section) => (
+                <div key={section.id} style={{ marginBottom: "8px" }}>
+                  <div 
+                    onClick={() => toggleSection(section.id)}
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "space-between",
+                      cursor: "pointer",
+                      padding: "8px 0",
+                      borderBottom: `1px solid ${c.border}`,
+                    }}
+                  >
+                    <div style={{ fontSize: "11px", fontWeight: "600", color: c.goldAccent }}>
+                      <span style={{ marginRight: "6px" }}>{section.icon}</span>
+                      {section.title}
+                    </div>
+                    <span style={{ fontSize: "12px", color: c.textMuted }}>{openSections[section.id] ? "−" : "+"}</span>
+                  </div>
+                  
+                  {openSections[section.id] && (
+                    <div style={{ marginTop: "8px", marginBottom: "4px" }}>
+                      {section.links.map((link, idx) => (
+                        <a 
+                          key={idx}
+                          href={link.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ 
+                            display: "flex", 
+                            alignItems: "center", 
+                            gap: "8px", 
+                            padding: "8px 10px", 
+                            background: "transparent",
+                            borderRadius: "10px", 
+                            textDecoration: "none",
+                            marginBottom: "4px",
+                            transition: "all 0.2s ease",
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = c.hoverBg;
+                            e.currentTarget.style.transform = "translateX(2px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                            e.currentTarget.style.transform = "translateX(0)";
+                          }}
+                        >
+                          <span style={{ fontSize: "16px", opacity: 0.8 }}>{link.flag}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: "12px", fontWeight: "500", color: c.text }}>
+                              {link.name}
+                            </div>
+                            <div style={{ fontSize: "9px", color: c.textMuted }}>
+                              {link.desc}
+                            </div>
+                          </div>
+                          <span style={{ fontSize: "11px", color: c.textMuted, opacity: 0.6 }}>🔗</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <p style={{ fontSize: "9px", color: c.textMuted, textAlign: "center", marginTop: "16px", paddingTop: "12px", borderTop: `1px solid ${c.border}` }}>
+              Data is aggregated from public sources for research purposes.
+            </p>
           </div>
         </>
       )}

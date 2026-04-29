@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           width: "100%",
           maxWidth: "380px",
           height: "700px",
-          backgroundColor: "1F1C18",
+          backgroundColor: "#1F1C18",
           overflow: "auto",
           border: "8px solid #151416",
           borderRadius: "44px",

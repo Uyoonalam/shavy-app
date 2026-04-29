@@ -20,7 +20,7 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
 
   const showToast = (message: string) => {
     setToast(message);
-    setTimeout(() => setToast(null), 2000);
+    setTimeout(() => setToast(null), 1500);
   };
 
   const fillDemoPayment = () => {
@@ -179,8 +179,8 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
         }
       }
       
-      setTimeout(() => onSuccess(), 1500);
-    }, 2000);
+      setTimeout(() => onSuccess(), 750);
+    }, 1500);
   };
 
   if (!paymentDetails) return null;
@@ -196,7 +196,7 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
     if (paymentDetails.type === "course") return "One-time payment • Lifetime access";
     if (paymentDetails.type === "founders") return "Monthly subscription • Cancel anytime";
     if (paymentDetails.type === "cvbuilder") return "One-time payment • Lifetime access";
-    return "Monthly subscription • Cancel anytime";
+    return "One-time payment • Ad-free experience";
   };
 
   return (
@@ -320,7 +320,7 @@ export default function PaymentUI({ theme, paymentDetails, onBack, onSuccess }: 
           onMouseLeave={(e) => { if (!isProcessing) { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(212, 175, 55, 0.3)"; } }}
         >{isProcessing ? "Processing..." : `Pay $${paymentDetails.amount}`}</button>
 
-        <p style={{ textAlign: "center", fontSize: "11px", color: currentColors.textMuted, marginTop: "20px" }}>🔒 Secure payment • Demo mode — no real charges</p>
+        <p style={{ textAlign: "center", fontSize: "11px", color: currentColors.textMuted, marginTop: "20px" }}>🔒 Secure payment</p>
       </form>
     </div>
   );

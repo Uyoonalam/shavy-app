@@ -57,6 +57,7 @@ export default function HomeUI({ theme }: HomeUIProps) {
   const [newSkillProficiency, setNewSkillProficiency] = useState(50);
   const [skillsExpanded, setSkillsExpanded] = useState(false);
   const [typedText, setTypedText] = useState("");
+  const [extractedPhoto, setExtractedPhoto] = useState<string | null>(null);
   const [typingIndex, setTypingIndex] = useState(0);
   
   // Random daily tip (changes on each reload)
@@ -181,25 +182,25 @@ export default function HomeUI({ theme }: HomeUIProps) {
   };
   
   const handleFakeScan = (isReupload: boolean = false) => {
-    setIsScanning(true);
-    let stepIndex = 0;
+  setIsScanning(true);
+  let stepIndex = 0;
 
-    const interval = setInterval(() => {
-      if (stepIndex < 7) {
-        const steps = [
-          { message: "📄 Reading your resume...", progress: 10 },
-          { message: "🔍 Extracting contact information...", progress: 25 },
-          { message: "🛠️ Looking into skills...", progress: 40 },
-          { message: "🎓 Checking education background...", progress: 55 },
-          { message: "💼 Analyzing work experience...", progress: 70 },
-          { message: "📊 Generating skill profile...", progress: 85 },
-          { message: "✅ Finalizing your profile!", progress: 100 },
-        ];
-        setScanMessage(steps[stepIndex].message);
-        setScanProgress(steps[stepIndex].progress);
-        stepIndex++;
-      } else {
-        clearInterval(interval);
+  const interval = setInterval(() => {
+    if (stepIndex < 7) {
+      const steps = [
+        { message: "📄 Reading your resume...", progress: 10 },
+        { message: "🔍 Extracting contact information...", progress: 25 },
+        { message: "🛠️ Looking into skills...", progress: 40 },
+        { message: "🎓 Checking education background...", progress: 55 },
+        { message: "💼 Analyzing work experience...", progress: 70 },
+        { message: "📸 Detecting profile photo...", progress: 85 },  // NEW STEP
+        { message: "✅ Finalizing your profile!", progress: 100 },
+      ];
+      setScanMessage(steps[stepIndex].message);
+      setScanProgress(steps[stepIndex].progress);
+      stepIndex++;
+    } else {
+      clearInterval(interval);
         
         const newSkills = [
           "Lean Six Sigma (Black Belt)",
@@ -226,6 +227,10 @@ export default function HomeUI({ theme }: HomeUIProps) {
           "Change Management": 83,
           "Budgeting & Forecasting": 87
         };
+
+      const bhaiPhoto = "/bhai.jpg";
+      localStorage.setItem("shavy_profile_photo", bhaiPhoto);
+       window.dispatchEvent(new Event("storage"));
         
         setSkills(newSkills);
         setDescription(newDescription);

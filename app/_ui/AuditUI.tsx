@@ -53,7 +53,7 @@ const goodCompaniesDetails = {
     aiGeneratedDescription: "Amazon Logistics is a global leader in supply chain and last-mile delivery. With $574B+ in annual revenue, they have successfully integrated AI-driven warehouse automation and predictive logistics. Their financial health is excellent, with consistent year-over-year growth. Employee ratings are high for compensation and career growth, though work-life balance remains a concern. Recent antitrust scrutiny has not materially impacted operations.",
     trustScore: 94,
     verificationBadge: "🥇 Gold",
-    trendData: [88, 89, 90, 91, 91, 92, 92, 93, 93, 94, 94, 94], // Last 12 months
+    trendData: [88, 89, 90, 91, 91, 92, 92, 93, 93, 94, 94, 94],
   },
   "DHL Supply Chain": {
     general: {
@@ -235,33 +235,72 @@ const badCompaniesDetails = {
   },
 };
 
-// Trend Chart Component
+// Improved Trend Chart Component
 const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark" | "light"; companyName: string }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const maxScore = 100;
-  const height = 80;
+  const height = 100;
   
   const colors = theme === "dark" 
-    ? { bar: "#d4af37", barHover: "#f0c74a", text: "#94a3b8", label: "#62748c" }
-    : { bar: "#b8860b", barHover: "#d4af37", text: "#64748b", label: "#94a3b8" };
+    ? { bar: "#d4af37", barHover: "#f0c74a", text: "#e2e8f0", textMuted: "#94a3b8", grid: "#334155", label: "#62748c" }
+    : { bar: "#b8860b", barHover: "#d4af37", text: "#0f172a", textMuted: "#64748b", grid: "#e2e8f0", label: "#94a3b8" };
   
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   
   const getBarHeight = (score: number) => (score / maxScore) * height;
   
+  // Find min and max for better visualization
+  const minScore = Math.min(...data);
+  const maxScoreData = Math.max(...data);
+  const isImproving = data[data.length - 1] > data[0];
+  const isDeclining = data[data.length - 1] < data[0];
+  
   return (
-    <div style={{ marginTop: "16px", padding: "12px", backgroundColor: theme === "dark" ? "#1F1C18" : "#f8fafc", borderRadius: "12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-        <span style={{ fontSize: "14px" }}>📈</span>
-        <span style={{ fontSize: "12px", fontWeight: "500", color: colors.text }}>Trust Score Trend (12 months)</span>
-        <span style={{ fontSize: "10px", color: colors.label, marginLeft: "auto" }}>
-          {data[data.length - 1] > data[0] ? "↑ Improving" : data[data.length - 1] < data[0] ? "↓ Declining" : "→ Stable"}
-        </span>
+    <div style={{ marginTop: "20px", padding: "16px", backgroundColor: theme === "dark" ? "#1F1C18" : "#f8fafc", borderRadius: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "16px" }}>📈</span>
+          <span style={{ fontSize: "13px", fontWeight: "600", color: colors.text }}>Trust Score Trend</span>
+        </div>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          padding: "4px 10px",
+          borderRadius: "20px",
+          backgroundColor: isImproving ? "rgba(34,197,94,0.15)" : isDeclining ? "rgba(239,68,68,0.15)" : "rgba(212,175,55,0.15)",
+        }}>
+          <span style={{ fontSize: "10px", color: isImproving ? "#22c55e" : isDeclining ? "#ef4444" : "#eab308" }}>
+            {isImproving ? "↑ Improving" : isDeclining ? "↓ Declining" : "→ Stable"}
+          </span>
+        </div>
       </div>
       
-      <div style={{ position: "relative", height: `${height + 25}px` }}>
+      <div style={{ position: "relative", height: `${height + 30}px` }}>
+        {/* Grid lines */}
+        <div style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 25, pointerEvents: "none" }}>
+          {[0, 25, 50, 75, 100].map((line) => (
+            <div key={line} style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: `${(1 - line / 100) * height}px`,
+              borderTop: `1px solid ${colors.grid}`,
+              opacity: 0.3,
+            }}>
+              <span style={{
+                position: "absolute",
+                right: -20,
+                top: -6,
+                fontSize: "8px",
+                color: colors.textMuted,
+              }}>{line}%</span>
+            </div>
+          ))}
+        </div>
+        
         {/* Bars */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", height: `${height}px`, gap: "2px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", height: `${height}px`, gap: "3px" }}>
           {data.map((score, idx) => (
             <div
               key={idx}
@@ -269,11 +308,12 @@ const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark
                 flex: 1,
                 height: `${getBarHeight(score)}px`,
                 backgroundColor: hoveredIndex === idx ? colors.barHover : colors.bar,
-                borderRadius: "4px 4px 0 0",
+                borderRadius: "6px 6px 0 0",
                 transition: "all 0.2s ease",
                 cursor: "pointer",
                 position: "relative",
-                minWidth: "18px",
+                minWidth: "20px",
+                opacity: hoveredIndex === null || hoveredIndex === idx ? 1 : 0.6,
               }}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -284,17 +324,19 @@ const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark
                   bottom: "100%",
                   left: "50%",
                   transform: "translateX(-50%)",
-                  marginBottom: "4px",
-                  backgroundColor: theme === "dark" ? "#3a3a3a" : "#e2e8f0",
-                  padding: "2px 6px",
-                  borderRadius: "6px",
-                  fontSize: "10px",
+                  marginBottom: "8px",
+                  backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                  padding: "4px 10px",
+                  borderRadius: "8px",
+                  fontSize: "11px",
                   fontWeight: "600",
-                  color: theme === "dark" ? "#e2e8f0" : "#0f172a",
+                  color: colors.text,
                   whiteSpace: "nowrap",
                   zIndex: 10,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  border: `1px solid ${colors.bar}`,
                 }}>
-                  {score}%
+                  {months[idx]}: {score}%
                 </div>
               )}
             </div>
@@ -302,16 +344,17 @@ const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark
         </div>
         
         {/* Month Labels */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", gap: "2px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", gap: "3px" }}>
           {months.map((month, idx) => (
             <div
               key={idx}
               style={{
                 flex: 1,
-                fontSize: "7px",
+                fontSize: "8px",
                 color: colors.label,
                 textAlign: "center",
-                minWidth: "18px",
+                minWidth: "20px",
+                fontWeight: hoveredIndex === idx ? "600" : "400",
               }}
             >
               {month}
@@ -320,16 +363,23 @@ const TrendChart = ({ data, theme, companyName }: { data: number[]; theme: "dark
         </div>
       </div>
       
-      {/* Mini summary */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", fontSize: "10px", color: colors.text }}>
-        <span>Start: {data[0]}%</span>
-        <span>Current: {data[data.length - 1]}%</span>
-        <span style={{ 
-          color: data[data.length - 1] > data[0] ? "#22c55e" : data[data.length - 1] < data[0] ? "#ef4444" : "#eab308"
-        }}>
-          {data[data.length - 1] > data[0] ? `▲ +${data[data.length - 1] - data[0]}` : 
-           data[data.length - 1] < data[0] ? `▼ ${data[data.length - 1] - data[0]}` : "→ 0"}
-        </span>
+      {/* Stats summary */}
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "space-between", 
+        marginTop: "16px", 
+        paddingTop: "12px", 
+        borderTop: `1px solid ${colors.grid}`,
+        fontSize: "10px",
+        color: colors.textMuted,
+      }}>
+        <div>Start: <strong style={{ color: colors.text }}>{data[0]}%</strong></div>
+        <div>Highest: <strong style={{ color: "#22c55e" }}>{maxScoreData}%</strong></div>
+        <div>Current: <strong style={{ color: colors.text }}>{data[data.length - 1]}%</strong></div>
+        <div style={{ color: isImproving ? "#22c55e" : isDeclining ? "#ef4444" : "#eab308" }}>
+          {isImproving ? `▲ +${data[data.length - 1] - data[0]}` : 
+           isDeclining ? `▼ ${data[data.length - 1] - data[0]}` : "→ 0"}
+        </div>
       </div>
     </div>
   );
@@ -340,6 +390,11 @@ export default function AuditUI({ theme }: AuditUIProps) {
   const [viewingCompany, setViewingCompany] = useState<any>(null);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const detailsTopRef = useRef<HTMLDivElement>(null);
+  
+  // NEW STATES for filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [sortBy, setSortBy] = useState("score-desc");
 
   useEffect(() => {
     if (viewingCompany && detailsTopRef.current) {
@@ -352,7 +407,6 @@ export default function AuditUI({ theme }: AuditUIProps) {
     setResumeScanned(scanned === "true");
   }, []);
 
-  // UPDATED COLORS for new dark mode scheme (#1F1C18 base)
   const colors = {
     dark: {
       cardBg: "#2A2622",
@@ -388,6 +442,30 @@ export default function AuditUI({ theme }: AuditUIProps) {
     { name: "Speedy Freight Solutions", score: 28, status: "not_verified", controversies: 72, finance: 24, employee: 29, type: "bad", role: "Fleet Manager" },
   ];
 
+  // FILTER COMPANIES
+  let filteredCompanies = [...companies];
+  
+  if (searchQuery) {
+    filteredCompanies = filteredCompanies.filter(company =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+  
+  if (filterType !== "all") {
+    filteredCompanies = filteredCompanies.filter(company => company.type === filterType);
+  }
+  
+  // SORT COMPANIES
+  filteredCompanies.sort((a, b) => {
+    switch (sortBy) {
+      case "score-desc": return b.score - a.score;
+      case "score-asc": return a.score - b.score;
+      case "name-asc": return a.name.localeCompare(b.name);
+      case "name-desc": return b.name.localeCompare(a.name);
+      default: return b.score - a.score;
+    }
+  });
+
   const getScoreColor = (score: number) => {
     if (score < 33) return "#ef4444";
     if (score <= 66) return "#eab308";
@@ -417,14 +495,14 @@ export default function AuditUI({ theme }: AuditUIProps) {
     const details = getCompanyDetails(company.name);
     if (details) {
       setViewingCompany({ ...company, details });
-setTimeout(() => {
-  const scrollContainer = document.querySelector('[style*="overflow-y: auto"]');
-  if (scrollContainer) {
-    scrollContainer.scrollTop = 0;
-  } else {
-    window.scrollTo(0, 0);
-  }
-}, 10);
+      setTimeout(() => {
+        const scrollContainer = document.querySelector('[style*="overflow-y: auto"]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = 0;
+        } else {
+          window.scrollTo(0, 0);
+        }
+      }, 10);
     }
   };
 
@@ -542,7 +620,7 @@ setTimeout(() => {
           </div>
 
           <div style={{ padding: "20px" }}>
-            {/* TREND CHART - NEW ADDITION */}
+            {/* Improved Trend Chart */}
             {details.trendData && (
               <TrendChart data={details.trendData} theme={theme} companyName={viewingCompany.name} />
             )}
@@ -679,11 +757,177 @@ setTimeout(() => {
 
   return (
     <div className="audit-scroll-container" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <p style={{ fontSize: "13px", color: currentColors.textMuted, marginBottom: "4px", paddingLeft: "4px", fontWeight: "500" }}>
-        Based on your skills, here are companies you should research:
+      {/* Search and Filter Bar */}
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        marginBottom: "4px",
+      }}>
+        {/* Search Bar with clear button */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          backgroundColor: theme === "dark" ? "#1F1C18" : "#f8fafc",
+          borderRadius: "40px",
+          transition: "all 0.2s ease",
+        }}>
+          <span style={{ fontSize: "16px", marginRight: "8px", opacity: 0.6 }}>🔍</span>
+          <input
+            type="text"
+            placeholder=" Search companies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: "none",
+              borderRadius: "50px",
+              padding: "10px 6px",
+              color: currentColors.text,
+              fontSize: "14px",
+              outline: "none",
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              style={{
+                background: "transparent",
+                border: "none",
+                fontSize: "14px",
+                cursor: "pointer",
+                color: currentColors.textMuted,
+                padding: "4px",
+                borderRadius: "50%",
+                width: "24px",
+                height: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme === "dark" ? "#3a3a3a" : "#e2e8f0"}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Filter and Sort Row - IMPROVED with Sort Pills */}
+<div style={{
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+}}>
+  {/* Type Filter - Pill Button Style */}
+  <div style={{
+    display: "flex",
+    background: theme === "dark" ? "#1F1C18" : "#f8fafc",
+    border: `1px solid ${currentColors.border}`,
+    borderRadius: "40px",
+    padding: "3px",
+    gap: "4px",
+  }}>
+    {[
+      { id: "all", label: "🏢 All" },
+      { id: "good", label: "🟢 Good" },
+      { id: "mid", label: "🟡 Mid" },
+      { id: "bad", label: "🔴 Bad" },
+    ].map((option) => (
+      <button
+        key={option.id}
+        onClick={() => setFilterType(option.id)}
+        style={{
+          padding: "6px 16px",
+          borderRadius: "32px",
+          fontSize: "12px",
+          fontWeight: "500",
+          background: filterType === option.id 
+            ? `linear-gradient(135deg, ${currentColors.goldAccent}, ${currentColors.goldAccent}80)`
+            : "transparent",
+          color: filterType === option.id ? "#111827" : currentColors.text,
+          border: "none",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          if (filterType !== option.id) {
+            e.currentTarget.style.background = theme === "dark" ? "#3a3a3a" : "#e2e8f0";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (filterType !== option.id) {
+            e.currentTarget.style.background = "transparent";
+          }
+        }}
+      >
+        {option.label}
+      </button>
+    ))}
+  </div>
+
+  {/* Sort By - Pill Buttons for Trust Score & Name */}
+  <div style={{
+    display: "flex",
+    background: theme === "dark" ? "#1F1C18" : "#f8fafc",
+    border: `1px solid ${currentColors.border}`,
+    borderRadius: "40px",
+    padding: "3px",
+    gap: "4px",
+  }}>
+    {[
+      { id: "score-desc", label: " Trust Ascending" },
+      { id: "score-asc", label: " Trust Descending" },
+      { id: "name-asc", label: " Name Ascending" },
+      { id: "name-desc", label: " Name Descending" },
+    ].map((option) => (
+      <button
+        key={option.id}
+        onClick={() => setSortBy(option.id)}
+        style={{
+          padding: "6px 14px",
+          borderRadius: "32px",
+          fontSize: "11px",
+          fontWeight: "500",
+          background: sortBy === option.id 
+            ? `linear-gradient(135deg, ${currentColors.goldAccent}, ${currentColors.goldAccent}80)`
+            : "transparent",
+          color: sortBy === option.id ? "#111827" : currentColors.text,
+          border: "none",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          if (sortBy !== option.id) {
+            e.currentTarget.style.background = theme === "dark" ? "#3a3a3a" : "#e2e8f0";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (sortBy !== option.id) {
+            e.currentTarget.style.background = "transparent";
+          }
+        }}
+      >
+        {option.label}
+      </button>
+    ))}
+  </div>
+</div>
+      </div>
+
+      {/* Results Count */}
+      <p style={{
+        fontSize: "11px",
+        color: currentColors.textMuted,
+        paddingLeft: "4px",
+        marginTop: "4px",
+      }}>
+        Found {filteredCompanies.length} company{filteredCompanies.length !== 1 ? 'ies' : ''}
       </p>
       
-      {companies.map((company, idx) => (
+      {/* Companies List */}
+      {filteredCompanies.map((company, idx) => (
         <div
           key={idx}
           style={{
@@ -774,6 +1018,41 @@ setTimeout(() => {
           </button>
         </div>
       ))}
+
+      {/* No results message */}
+      {filteredCompanies.length === 0 && (
+        <div style={{
+          textAlign: "center",
+          padding: "40px",
+          backgroundColor: currentColors.cardBg,
+          borderRadius: "20px",
+          border: `1px solid ${currentColors.border}`,
+        }}>
+          <span style={{ fontSize: "48px", opacity: 0.5 }}>🔍</span>
+          <p style={{ fontSize: "14px", color: currentColors.textMuted, marginTop: "12px" }}>
+            No companies found matching your criteria
+          </p>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setFilterType("all");
+              setSortBy("score-desc");
+            }}
+            style={{
+              marginTop: "16px",
+              background: "transparent",
+              border: `1px solid ${currentColors.goldAccent}`,
+              padding: "8px 20px",
+              borderRadius: "30px",
+              fontSize: "12px",
+              color: currentColors.goldAccent,
+              cursor: "pointer",
+            }}
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
     </div>
   );
 }

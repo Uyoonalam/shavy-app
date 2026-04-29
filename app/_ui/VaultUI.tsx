@@ -601,8 +601,24 @@ export default function VaultUI({ theme }: VaultUIProps) {
           <div style={{ fontSize: "32px", marginBottom: "8px" }}>📄</div>
           <h3 style={{ fontSize: "16px", fontWeight: "600", color: c.text, marginBottom: "8px" }}>CV Builder</h3>
           <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "16px" }}>✅ Enabled — AI-powered templates • Export as PDF</p>
-          <button onClick={() => { const toast = document.createElement("div"); toast.textContent = "📄 CV Builder — Coming soon!"; toast.style.position = "fixed"; toast.style.bottom = "80px"; toast.style.left = "50%"; toast.style.transform = "translateX(-50%)"; toast.style.backgroundColor = theme === "dark" ? "#2A2622" : "#ffffff"; toast.style.color = "#d4af37"; toast.style.padding = "12px 20px"; toast.style.borderRadius = "40px"; toast.style.fontSize = "13px"; toast.style.zIndex = "200"; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2000); }} style={{ background: "linear-gradient(135deg, #d4af37, #b8860b)", border: "none", padding: "10px 20px", borderRadius: "30px", fontSize: "13px", fontWeight: "600", color: "#111827", cursor: "pointer", marginTop: 0 }}>Create CV</button>
-        </div>
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("openResumeBuilder"));
+            }}
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #b8860b)",
+              border: "none",
+              padding: "10px 20px",
+              borderRadius: "30px",
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#111827",
+              cursor: "pointer",
+            }}
+          >
+            Create CV
+          </button>        
+</div>
       )}
     </div>
   );

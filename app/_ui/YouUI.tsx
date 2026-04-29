@@ -28,6 +28,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   const [pinSuccess, setPinSuccess] = useState("");
   const [showDeletePinModal, setShowDeletePinModal] = useState(false);
   const [deletePin, setDeletePin] = useState("");
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [deletePinError, setDeletePinError] = useState("");
 
   const darkColors = {
@@ -36,6 +37,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     text: "#e2e8f0",
     textMuted: "#94a3b8",
     secondaryBg: "#342b24",
+    goldAccent: "#d4af37",
   };
 
   const lightColors = {
@@ -44,6 +46,7 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     text: "#0f172a",
     textMuted: "#64748b",
     secondaryBg: "#f8fafc",
+    goldAccent: "#d4af37",
   };
 
   const c = theme === "dark" ? darkColors : lightColors;
@@ -81,6 +84,64 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
     return;
   }
   setShowDeletePinModal(true);
+};
+
+// Add this inside YouUI component, near other state declarations
+const calculateProfileStrength = () => {
+  let score = 0;
+  let total = 6;
+  
+  // Check each field
+    const hasPhoto = profilePhoto !== null;
+    const hasName = localStorage.getItem("shavy_user_name") || localStorage.getItem("shavy_extracted_name");
+    const hasEmail = localStorage.getItem("shavy_user_email") || localStorage.getItem("shavy_extracted_email");
+    const hasSkills = JSON.parse(localStorage.getItem("shavy_skills") || "[]").length > 0;
+    const hasResume = localStorage.getItem("shavy_resumeScanned") === "true";
+    const hasPIN = localStorage.getItem("shavy_vault_pin") !== null;
+  
+  if (hasPhoto) score++;
+  if (hasName) score++;
+  if (hasEmail) score++;
+  if (hasSkills) score++;
+  if (hasResume) score++;
+  if (hasPIN) score++;
+  
+  return Math.round((score / total) * 100);
+};
+
+const [profileStrength, setProfileStrength] = useState(0);
+const [strengthLevel, setStrengthLevel] = useState("");
+const [profileUpdateTrigger, setProfileUpdateTrigger] = useState(0);
+
+
+useEffect(() => {
+  const strength = calculateProfileStrength();
+  setProfileStrength(strength);
+  
+  if (strength < 30) setStrengthLevel("Basic");
+  else if (strength < 60) setStrengthLevel("Building");
+  else if (strength < 85) setStrengthLevel("Strong");
+  else setStrengthLevel("Complete");
+}, [profilePhoto, profileUpdateTrigger]);
+
+useEffect(() => {
+  const handleStorageChange = () => {
+    const photo = localStorage.getItem("shavy_profile_photo");
+    if (photo) {
+      setProfilePhoto(photo);
+      setProfileUpdateTrigger(prev => prev + 1);
+    }
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
+}, []);
+
+const getStrengthColor = () => {
+  if (profileStrength < 30) return "#ef4444";
+  if (profileStrength < 60) return "#f97316";
+  if (profileStrength < 85) return "#eab308";
+  return "#22c55e";
 };
 
   const verifyDeletePin = () => {
@@ -239,9 +300,67 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
   const iconStyle = { fontSize: "16px", width: "28px", opacity: 0.7 };
   const labelStyle = { fontSize: "14px", fontWeight: "500", color: c.text, flex: 1 };
   const valueStyle = { fontSize: "12px", color: c.textMuted };
-
+  
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+      {/* Profile Strength Meter */}
+<div style={{
+  backgroundColor: c.cardBg,
+  borderRadius: "16px",
+  padding: "16px",
+  border: `1px solid ${c.border}`,
+  marginBottom: "12px",
+}}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>      <span style={{ fontSize: "13px", fontWeight: "600", color: c.text }}>Profile Strength</span>
+    </div>
+    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      <span style={{ fontSize: "18px", fontWeight: "700", color: getStrengthColor() }}>{profileStrength}%</span>
+      <span style={{ fontSize: "11px", color: c.textMuted }}>{strengthLevel}</span>
+    </div>
+  </div>
+  
+  {/* Progress Bar */}
+  <div style={{
+    height: "8px",
+    backgroundColor: theme === "dark" ? "#3a3a3a" : "#e2e8f0",
+    borderRadius: "10px",
+    overflow: "hidden",
+    marginBottom: "12px",
+  }}>
+    <div style={{
+      width: `${profileStrength}%`,
+      height: "100%",
+      background: `linear-gradient(90deg, ${getStrengthColor()}, ${getStrengthColor()}80)`,
+      borderRadius: "10px",
+      transition: "width 0.3s ease",
+    }} />
+  </div>
+  
+  {/* Checklist */}
+  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", fontSize: "10px", color: c.textMuted }}>
+    {[
+  { label: "Profile Photo", check: profilePhoto !== null },
+  { label: "Full Name", check: localStorage.getItem("shavy_user_name") || localStorage.getItem("shavy_extracted_name") },
+  { label: "Email", check: localStorage.getItem("shavy_user_email") || localStorage.getItem("shavy_extracted_email") },
+  { label: "Skills Added", check: JSON.parse(localStorage.getItem("shavy_skills") || "[]").length > 0 },
+  { label: "Resume Uploaded", check: localStorage.getItem("shavy_resumeScanned") === "true" },
+  { label: "Vault PIN Set", check: localStorage.getItem("shavy_vault_pin") !== null },
+].map((item, idx) => (
+  <div key={idx} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+    <span style={{ color: item.check ? "#22c55e" : "#ef4444" }}>{item.check ? "✅" : "❌"}</span>
+    <span>{item.label}</span>
+  </div>
+))}
+  </div>
+  
+  {profileStrength < 100 && (
+    <p style={{ fontSize: "10px", color: c.textMuted, marginTop: "12px", textAlign: "center", fontStyle: "italic" }}>
+      💡 Complete all items to reach 100% profile strength
+    </p>
+  )}
+</div>
 
       {/* Security Section */}
       <div style={{
@@ -297,32 +416,95 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
         overflow: "hidden",
       }}>
         <div onClick={() => handleSectionToggle("notifications")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "16px", opacity: 0.7 }}>🔔</span>
-            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>Notifications</span>
-          </div>
-          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
-            {openSection === "notifications" ? "−" : "+"}
-          </span>
-        </div>
-        {openSection === "notifications" && (
-          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={iconStyle}>📧</span>
-                <span style={labelStyle}>Email</span>
-              </div>
-              <ToggleSwitch checked={emailNotifications} onChange={() => setEmailNotifications(!emailNotifications)} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={iconStyle}>💼</span>
-                <span style={labelStyle}>Job Alerts</span>
-              </div>
-              <ToggleSwitch checked={jobAlerts} onChange={() => setJobAlerts(!jobAlerts)} />
-            </div>
-          </div>
-        )}
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <span style={{ fontSize: "16px", opacity: 0.7 }}>🔔</span>
+    <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>Notifications</span>
+  </div>
+  <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+    {openSection === "notifications" ? "−" : "+"}
+  </span>
+</div>
+{openSection === "notifications" && (
+  <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+    
+    {/* Email Notifications - Slider Toggle */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <span style={iconStyle}>📧</span>
+        <span style={labelStyle}>Email</span>
+      </div>
+      
+      {/* Slider Toggle for Email */}
+      <button
+        onClick={() => setEmailNotifications(!emailNotifications)}
+        style={{
+          width: "44px",
+          height: "24px",
+          backgroundColor: emailNotifications ? "#d4af37" : (theme === "dark" ? "#3a3a3a" : "#cbd5e1"),
+          borderRadius: "34px",
+          border: "none",
+          cursor: "pointer",
+          position: "relative",
+          transition: "background-color 0.3s ease",
+          padding: "2px",
+        }}
+      >
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: "#ffffff",
+            borderRadius: "50%",
+            position: "absolute",
+            top: "2px",
+            left: emailNotifications ? "22px" : "2px",
+            transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        />
+      </button>
+    </div>
+
+    {/* Job Alerts - Slider Toggle */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <span style={iconStyle}>💼</span>
+        <span style={labelStyle}>Job Alerts</span>
+      </div>
+      
+      {/* Slider Toggle for Job Alerts */}
+      <button
+        onClick={() => setJobAlerts(!jobAlerts)}
+        style={{
+          width: "44px",
+          height: "24px",
+          backgroundColor: jobAlerts ? "#d4af37" : (theme === "dark" ? "#3a3a3a" : "#cbd5e1"),
+          borderRadius: "34px",
+          border: "none",
+          cursor: "pointer",
+          position: "relative",
+          transition: "background-color 0.3s ease",
+          padding: "2px",
+        }}
+      >
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: "#ffffff",
+            borderRadius: "50%",
+            position: "absolute",
+            top: "2px",
+            left: jobAlerts ? "22px" : "2px",
+            transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        />
+      </button>
+    </div>
+
+  </div>
+)}
       </div>
 
       {/* Support Section */}
@@ -365,41 +547,41 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
       </div>
 
       {/* About Section */}
-      <div style={{
-        backgroundColor: c.cardBg,
-        borderRadius: "16px",
-        border: `1px solid ${c.border}`,
-        overflow: "hidden",
-      }}>
-        <div onClick={() => handleSectionToggle("about")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "16px", opacity: 0.7 }}>ℹ️</span>
-            <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>About</span>
-          </div>
-          <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
-            {openSection === "about" ? "−" : "+"}
-          </span>
-        </div>
-        {openSection === "about" && (
-          <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
-            <div style={menuItemStyle}>
-              <span style={iconStyle}>📦</span>
-              <span style={labelStyle}>Version</span>
-              <span style={valueStyle}>1.0.0</span>
-            </div>
-            <div onClick={() => setShowPrivacyModal(true)} style={menuItemStyle}>
-              <span style={iconStyle}>📜</span>
-              <span style={labelStyle}>Privacy</span>
-              <span style={valueStyle}>→</span>
-            </div>
-            <div style={{ ...menuItemStyle, borderBottom: "none" }}>
-              <span style={iconStyle}>⚖️</span>
-              <span style={labelStyle}>Terms</span>
-              <span style={valueStyle}>→</span>
-            </div>
-          </div>
-        )}
+<div style={{
+  backgroundColor: c.cardBg,
+  borderRadius: "16px",
+  border: `1px solid ${c.border}`,
+  overflow: "hidden",
+}}>
+  <div onClick={() => handleSectionToggle("about")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", cursor: "pointer" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <span style={{ fontSize: "16px", opacity: 0.7 }}>ℹ️</span>
+      <span style={{ fontSize: "14px", fontWeight: "500", color: c.text }}>About</span>
+    </div>
+    <span style={{ fontSize: "16px", fontWeight: "300", color: c.textMuted }}>
+      {openSection === "about" ? "−" : "+"}
+    </span>
+  </div>
+  {openSection === "about" && (
+    <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${c.border}` }}>
+      <div style={menuItemStyle}>
+        <span style={iconStyle}>📦</span>
+        <span style={labelStyle}>Version</span>
+        <span style={valueStyle}>1.0.0</span>
       </div>
+      <div onClick={() => setShowPrivacyModal(true)} style={menuItemStyle}>
+        <span style={iconStyle}>📜</span>
+        <span style={labelStyle}>Privacy</span>
+        <span style={valueStyle}>→</span>
+      </div>
+      <div onClick={() => setShowTermsModal(true)} style={{ ...menuItemStyle, borderBottom: "none" }}>
+        <span style={iconStyle}>⚖️</span>
+        <span style={labelStyle}>Terms</span>
+        <span style={valueStyle}>→</span>
+      </div>
+    </div>
+  )}
+</div>
 
       {/* Founders Ecosystem Purchase Card - only show if NOT enabled */}
       {!foundersEnabled && (
@@ -750,39 +932,147 @@ export default function YouUI({ theme, setTheme, onPurchase }: YouUIProps) {
       )}
 
       {/* Privacy Modal */}
-      {showPrivacyModal && (
-        <>
-          <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: c.text }}>Privacy</h3>
-            <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px", lineHeight: "1.5" }}>Privacy isn't optional. Your data lives only on your device, end-to-end encrypted. Shavy never collects, sells, or shares anything. Your information belongs to you — always.</p>
-            <button onClick={() => setShowPrivacyModal(false)} style={{ width: "100%", background: "linear-gradient(135deg, #d4af37, #b8860b)", border: "none", padding: "10px", borderRadius: "40px", fontSize: "13px", fontWeight: "600", color: "#111827", cursor: "pointer" }}>Got it</button>
-          </div>
-        </>
-      )}
+{showPrivacyModal && (
+  <>
+    <div onClick={() => setShowPrivacyModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
+    <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "280px", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
+      <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: c.text }}>Privacy</h3>
+      <p style={{ fontSize: "12px", color: c.textMuted, marginBottom: "20px", lineHeight: "1.5" }}>Privacy isn't optional. Your data lives only on your device, end-to-end encrypted. Shavy never collects, sells, or shares anything. Your information belongs to you — always.</p>
+      <button onClick={() => setShowPrivacyModal(false)} style={{ width: "100%", background: "linear-gradient(135deg, #d4af37, #b8860b)", border: "none", padding: "10px", borderRadius: "40px", fontSize: "13px", fontWeight: "600", color: "#111827", cursor: "pointer" }}>Got it</button>
+    </div>
+  </>
+)}
 
-      {/* FAQ Modal */}
-      {showFaqModal && (
-        <>
-          <div onClick={() => setShowFaqModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", maxHeight: "70vh", overflowY: "auto", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", color: c.text }}>FAQ</h3>
-              <button onClick={() => setShowFaqModal(false)} style={{ background: "transparent", border: "none", fontSize: "18px", cursor: "pointer", color: c.textMuted }}>✕</button>
-            </div>
-            {faqItems.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: "12px", borderBottom: idx < faqItems.length - 1 ? `1px solid ${c.border}` : "none" }}>
-                <div onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", cursor: "pointer" }}>
-                  <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, flex: 1 }}>{item.q}</span>
-                </div>
-                {openFaqIndex === idx && (
-                  <p style={{ fontSize: "12px", color: c.textMuted, paddingBottom: "10px", lineHeight: "1.4" }}>{item.a}</p>
-                )}
-              </div>
-            ))}
+{/* FAQ Modal */}
+{showFaqModal && (
+  <>
+    <div onClick={() => setShowFaqModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
+    <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", maxHeight: "70vh", overflowY: "auto", backgroundColor: c.cardBg, borderRadius: "20px", padding: "20px", zIndex: 101, border: `1px solid ${c.border}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
+        <h3 style={{ fontSize: "16px", fontWeight: "600", color: c.text }}>FAQ</h3>
+        <button onClick={() => setShowFaqModal(false)} style={{ background: "transparent", border: "none", fontSize: "18px", cursor: "pointer", color: c.textMuted }}>✕</button>
+      </div>
+      {faqItems.map((item, idx) => (
+        <div key={idx} style={{ marginBottom: "12px", borderBottom: idx < faqItems.length - 1 ? `1px solid ${c.border}` : "none" }}>
+          <div onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", cursor: "pointer" }}>
+            <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, flex: 1 }}>{item.q}</span>
+            <span style={{ fontSize: "12px", color: c.textMuted }}>{openFaqIndex === idx ? "−" : "+"}</span>
           </div>
-        </>
-      )}
+          {openFaqIndex === idx && (
+            <p style={{ fontSize: "12px", color: c.textMuted, paddingBottom: "10px", lineHeight: "1.4" }}>{item.a}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
+{/* Terms & Conditions Modal */}
+{showTermsModal && (
+  <>
+    <div onClick={() => setShowTermsModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "none", zIndex: 100 }} />
+    <div style={{ 
+      position: "fixed", 
+      top: "50%", 
+      left: "50%", 
+      transform: "translate(-50%, -50%)", 
+      width: "320px", 
+      maxHeight: "80vh", 
+      overflowY: "auto", 
+      backgroundColor: c.cardBg, 
+      borderRadius: "20px", 
+      padding: "24px", 
+      zIndex: 101, 
+      border: `1px solid ${c.border}` 
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: "600", color: c.text }}>📜 Terms & Conditions</h3>
+        <button onClick={() => setShowTermsModal(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: c.textMuted }}>✕</button>
+      </div>
+      
+      <div style={{ fontSize: "12px", color: c.textMuted, lineHeight: "1.5", marginBottom: "20px" }}>
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>1. Data Privacy</strong><br />
+          All your data is stored locally on your device. Shavy does not collect, sell, or share any of your personal information. Your resume, skills, and vault data remain entirely under your control.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>2. User Responsibility</strong><br />
+          You are responsible for maintaining the security of your Vault PIN. Shavy cannot recover lost PINs or access your encrypted data.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>3. Payments & Refunds</strong><br />
+          All payments are processed securely through our payment partners. Purchases are final unless otherwise stated. Subscription services can be cancelled anytime.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>4. Intellectual Property</strong><br />
+          The Shavy platform, including its design, logo, content, and code, is the property of Shavy. You retain all rights to your uploaded content.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>5. Disclaimer of Warranties</strong><br />
+          Shavy provides career insights and company audits based on publicly available data. We do not guarantee job placement, salary outcomes, or investment decisions.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>6. Limitation of Liability</strong><br />
+          To the maximum extent permitted by law, Shavy shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>7. Modifications to Terms</strong><br />
+          We reserve the right to update these terms at any time. Continued use of Shavy after changes constitutes acceptance of the new terms.
+        </p>
+        
+        <p style={{ marginBottom: "14px" }}>
+          <strong style={{ color: c.goldAccent }}>8. Governing Law</strong><br />
+          These terms shall be governed by and construed in accordance with the laws of Pakistan.
+        </p>
+        
+        <p style={{ marginTop: "16px", paddingTop: "12px", borderTop: `1px solid ${c.border}`, fontSize: "10px", textAlign: "center" }}>
+          Last updated: March 2026
+        </p>
+      </div>
+      
+      <div style={{ display: "flex", gap: "12px" }}>
+        <button
+          onClick={() => setShowTermsModal(false)}
+          style={{
+            flex: 1,
+            background: "linear-gradient(135deg, #d4af37, #b8860b)",
+            border: "none",
+            padding: "12px",
+            borderRadius: "40px",
+            fontSize: "14px",
+            fontWeight: "600",
+            color: "#111827",
+            cursor: "pointer",
+          }}
+        >
+          I Agree
+        </button>
+        <button
+          onClick={() => setShowTermsModal(false)}
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: `1px solid ${c.border}`,
+            padding: "12px",
+            borderRadius: "40px",
+            fontSize: "14px",
+            fontWeight: "500",
+            color: c.textMuted,
+            cursor: "pointer",
+          }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </>
+)}
 
       {/* Delete PIN Verification Modal */}
       {showDeletePinModal && (

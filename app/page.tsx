@@ -14,6 +14,7 @@ import Sidebar from "./_ui/SideBar";
 import PaymentUI from "./_ui/Payment";
 import CoursesUI from "./_ui/Courses";
 import OnboardingTour from "./_ui/OnboardingTour";
+import ResumeBuilder from "./_ui/ResumeBuilder";
 
 type Screen = "splash" | "getstarted" | "signin" | "signup" | "app" | "courses" | "payment";
 type Tab = "home" | "audit" | "vault" | "you";
@@ -35,6 +36,7 @@ export default function Page() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [startSplash, setStartSplash] = useState(false);
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
   
   // Store random positions in state to avoid hydration mismatch
   const [particles, setParticles] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
@@ -149,9 +151,17 @@ export default function Page() {
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("shavy_onboarding_completed");
     if (!hasSeenOnboarding && screen === "app") {
-      setTimeout(() => setShowOnboarding(true), 1500);
+      setTimeout(() => setShowOnboarding(true), 2000);
     }
   }, [screen]);
+
+  useEffect(() => {
+  const handleOpenResumeBuilder = () => {
+    setShowResumeBuilder(true);
+  };
+  window.addEventListener("openResumeBuilder", handleOpenResumeBuilder);
+  return () => window.removeEventListener("openResumeBuilder", handleOpenResumeBuilder);
+}, []);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -416,6 +426,14 @@ export default function Page() {
       </div>
     );
   }
+
+  if (showResumeBuilder) {
+  return (
+    <div key={`resume-builder-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+      <ResumeBuilder theme={theme} onBack={() => setShowResumeBuilder(false)} />
+    </div>
+  );
+}
 
   return (
     <div style={{ 
