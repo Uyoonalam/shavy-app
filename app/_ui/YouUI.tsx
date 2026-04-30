@@ -171,6 +171,10 @@ const getStrengthColor = () => {
     localStorage.removeItem("shavy_extracted_phone");
     localStorage.removeItem("shavy_extracted_address");
     sessionStorage.removeItem("shavy_vault_unlocked");
+    localStorage.removeItem("shavy_post_likes");
+    localStorage.removeItem("shady_post_comments");  
+    localStorage.removeItem("shavy_connected_founders");
+    localStorage.removeItem("shavy_chat_histories");
     localStorage.removeItem("shavy_onboarding_completed");
     setProfilePhoto(null);
     setFoundersEnabled(false);

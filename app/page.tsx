@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import HomeUI from "./_ui/HomeUI";
 import AuditUI from "./_ui/AuditUI";
@@ -15,6 +15,7 @@ import PaymentUI from "./_ui/Payment";
 import CoursesUI from "./_ui/Courses";
 import OnboardingTour from "./_ui/OnboardingTour";
 import ResumeBuilder from "./_ui/ResumeBuilder";
+import FoundersEcosystemUI from "./_ui/FoundersEcosystemUI";
 
 type Screen = "splash" | "getstarted" | "signin" | "signup" | "app" | "courses" | "payment";
 type Tab = "home" | "audit" | "vault" | "you";
@@ -37,6 +38,8 @@ export default function Page() {
   const [isClient, setIsClient] = useState(false);
   const [startSplash, setStartSplash] = useState(false);
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [showFoundersEcosystem, setShowFoundersEcosystem] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   
   // Store random positions in state to avoid hydration mismatch
   const [particles, setParticles] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
@@ -163,23 +166,55 @@ export default function Page() {
   return () => window.removeEventListener("openResumeBuilder", handleOpenResumeBuilder);
 }, []);
 
+useEffect(() => {
+  const handleOpenFoundersEcosystem = () => {
+    setShowFoundersEcosystem(true);
+  };
+  window.addEventListener("openFoundersEcosystem", handleOpenFoundersEcosystem);
+  return () => window.removeEventListener("openFoundersEcosystem", handleOpenFoundersEcosystem);
+}, []);
+
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     localStorage.setItem("shavy_onboarding_completed", "true");
   };
 
+  // ========== FIXED PULL-TO-REFRESH ==========
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const pullThreshold = 80;
+
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setTouchStart(e.touches[0].clientY);
+    if (scrollRef.current && scrollRef.current.scrollTop === 0) {
+      setTouchStart(e.touches[0].clientY);
+      setIsPulling(true);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    if (scrollTop === 0 && e.touches[0].clientY - touchStart > 60 && !isRefreshing) {
-      setIsRefreshing(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+    if (!isPulling || !scrollRef.current) return;
+    
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - touchStart;
+    
+    if (distance > 0 && scrollRef.current.scrollTop === 0) {
+      e.preventDefault();
+      setPullDistance(Math.min(distance, pullThreshold * 1.5));
+      
+      if (distance > pullThreshold && !isRefreshing) {
+        // Trigger refresh
+        setIsRefreshing(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }
     }
+  };
+
+  const handleTouchEnd = () => {
+    setIsPulling(false);
+    setPullDistance(0);
+    setTouchStart(0);
   };
 
   const darkColors = {
@@ -189,6 +224,7 @@ export default function Page() {
     inputBg: "#2a2a2a",
     inputBorder: "#3a3a3a",
     text: "#e2e8f0",
+    gold: "#d4af37",
   };
 
   const lightColors = {
@@ -198,6 +234,7 @@ export default function Page() {
     inputBg: "#FFFFFF",
     inputBorder: "#E5E7EB",
     text: "#111827",
+    gold: "#d4af37",
   };
 
   const currentColors = theme === "dark" ? darkColors : lightColors;
@@ -427,6 +464,14 @@ export default function Page() {
     );
   }
 
+  if (showFoundersEcosystem) {
+  return (
+    <div key={`founders-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
+      <FoundersEcosystemUI theme={theme} onBack={() => setShowFoundersEcosystem(false)} />
+    </div>
+  );
+}
+
   if (showResumeBuilder) {
   return (
     <div key={`resume-builder-${transitionKey}`} style={{ animation: "fadeInScale 0.3s ease-out", height: "100%" }}>
@@ -446,28 +491,48 @@ export default function Page() {
       <TopBar theme={theme} onMenuClick={() => setIsSidebarOpen(true)} />
       
       <div 
+        ref={scrollRef}
         key={`app-${tab}-${transitionKey}`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{ 
           flex: 1, 
           padding: "20px 16px", 
           overflowY: "auto",
           animation: "fadeInScale 0.25s ease-out",
           position: "relative",
+          transition: "transform 0.2s ease-out",
+          transform: isPulling ? `translateY(${Math.min(pullDistance / 3, 20)}px)` : "translateY(0px)",
         }}
       >
+                {/* Pull-to-refresh indicator */}
+        {isPulling && pullDistance > 20 && !isRefreshing && (
+          <div style={{ 
+            textAlign: "center", 
+            padding: "10px", 
+            position: "sticky", 
+            top: 0, 
+            zIndex: 10,
+            color: "#d4af37",
+            fontSize: "12px",
+          }}>
+            ↓ Pull to refresh
+          </div>
+        )}
+        
         {isRefreshing && (
           <div style={{ textAlign: "center", padding: "10px", position: "sticky", top: 0, zIndex: 10 }}>
             <div style={{ 
               display: "inline-block", 
               width: "24px", 
               height: "24px", 
-              border: "2px solid #d4af37", 
+              border: `2px solid #d4af37`, 
               borderTopColor: "transparent", 
               borderRadius: "50%", 
               animation: "spin 0.6s linear infinite" 
             }} />
+            <div style={{ fontSize: "11px", color: currentColors.textMuted, marginTop: "4px" }}>Refreshing...</div>
           </div>
         )}
         

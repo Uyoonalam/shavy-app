@@ -415,3 +415,21 @@ body.light-theme .simple-card-hover:hover {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Horizontal scrollbar styling for tabs */
+::-webkit-scrollbar {
+  height: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
