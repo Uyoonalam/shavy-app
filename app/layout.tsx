@@ -1,5 +1,6 @@
 import { Inter, Allura } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const allura = Allura({ 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           position: "relative",
         }}>
           {children}
+          <Analytics />
         </div>
       </body>
     </html>
